@@ -33,6 +33,9 @@ def view_image(image: PILImage):
 
 # plan: use phash and crop_hash to hash the images of the folder
 # push both of those hashes into annoy's ANN, using a vector [phash, crop_hashes]
+# - refresh the ANN index for each folder as well, to avoid stale image pointers.
+#     - this can be done by getting the list of images from folder per directory
+#     - and remove the renamed/deleted images from ANN via checksums of them.
 
 # issues:
 # combine phash (global) and crop_hash (per-section) 
