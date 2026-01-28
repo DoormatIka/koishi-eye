@@ -31,61 +31,6 @@ def view_image(image: PILImage):
     _ = image_label.config(image=tk_img)
     setattr(image_label, "image", tk_img)
 
-# plan: use phash and crop_hash to hash the images of the folder
-# push both of those hashes into annoy's ANN, using a vector [phash, crop_hashes]
-# - refresh the ANN index for each folder as well, to avoid stale image pointers.
-#   - get checksums per each file, pass it into an SQLite database (folder) -> [files]
-#   - create a new folder sqlite per each run
-#       - take note if the new folder is the same as what is stored in the sqlite database
-#       - we can take a snapshot of each file and pass it into sqlite
-"""
-CREATE TABLE file_snapshot (
-    path TEXT,
-    size INTEGER,
-    hash TEXT,
-    snapshot_id INTEGER, -- 1 for 'old', 2 for 'new'
-    ann_index BLOB, -- ?????
-    PRIMARY KEY (path, snapshot_id)
-);
-CREATE INDEX idx_hash ON file_snapshot(hash);
-
-## to add files that exists in the new snapshot but not the old
-SELECT path FROM file_snapshot WHERE snapshot_id = 2
-EXCEPT
-SELECT path FROM file_snapshot WHERE snapshot_id = 1;
-
-## to delete files that exists in the old snapshot but not the new
-SELECT path FROM file_snapshot WHERE snapshot_id = 1
-EXCEPT
-SELECT path FROM file_snapshot WHERE snapshot_id = 2;
-
-# for modified files, path exists in both, but hash (or size) is different
-SELECT a.path 
-FROM file_snapshot a
-JOIN file_snapshot b ON a.path = b.path
-WHERE a.snapshot_id = 1 AND b.snapshot_id = 2
-AND (a.hash != b.hash OR a.size != b.size);
-
-# for renamed images.
-SELECT old.path AS old_path, new.path AS new_path
-FROM file_snapshot old
-JOIN file_snapshot new ON old.hash = new.hash AND old.size = new.size
-WHERE old.snapshot_id = 1 AND new.snapshot_id = 2
-AND old.path != new.path;
-"""
-#   - check if checksum exists in file, if not, add it in.
-#   - use the xxHash algorithm to make image hashing fast. 
-#       - xxHash is used here because its to figure out if the file has changed.
-
-# path.Path().glob("*.[png][webp] etc etc...") to list all the files recursively
-# its a generator so it can handle any number of images.
-
-# to make the program function for any number of images, 
-#   NEVER store the files in memory long-term. 
-#   do not push the images in an array outside the main loop.
-
-# store the ANN in the program's data/ folder
-
 # issues:
 # combine phash (global) and crop_hash (per-section) 
 # need to check what the crop_resistant_hash actually crops
