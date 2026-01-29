@@ -49,7 +49,6 @@ class BruteForceFinder:
 
     def create_hashes_from_directory(self, directory: Path) -> list[CombinedImageHash]:
         exts = get_supported_extensions()
-        print(exts)
         image_hashes: list[CombinedImageHash] = list()
 
         n_thread = os.cpu_count()
@@ -118,8 +117,8 @@ type ImageHashResult = tuple[CombinedImageHash, None] | tuple[None, str]
 
 class ImageHasher:
     size: int
-    logger: logger.Logger
-    def __init__(self, logger: logger.Logger, size: int = 8):
+    logger: logger.BlankLogger
+    def __init__(self, logger: logger.BlankLogger, size: int = 8):
         self.logger = logger
         self.size = size
 

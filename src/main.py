@@ -6,7 +6,7 @@ import logger
 
 def scan_from_directory(directory: str): # prototype
     dir = Path(directory)
-    imghasher = hasher.ImageHasher(logger=logger.Logger(), size=16)
+    imghasher = hasher.ImageHasher(logger=logger.MatchLogger(), size=16)
     finder = hasher.BruteForceFinder(hasher=imghasher)
 
     hashes = finder.create_hashes_from_directory(dir)
