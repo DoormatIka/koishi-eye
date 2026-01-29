@@ -1,12 +1,14 @@
 
 from dataclasses import dataclass
+from typing import Protocol
 import numpy as np
 import imagehash
 
 from PIL import Image
 from PIL.Image import Image as PILImage
-
+from concurrent.futures import ProcessPoolExecutor, Future, as_completed
 from pathlib import Path
+
 
 import logger
 
@@ -29,26 +31,31 @@ def imagehash_to_int(h: imagehash.ImageHash) -> int:
 # todo: crop resistant hashing doesn't do anything at the moment.
 # have a flag that says what hash triggered the nearest match.
 
-class ImageHasher:
-    size: int
-    logger: logger.Logger
-    def __init__(self, logger: logger.Logger, size: int = 8):
-        self.logger = logger
-        self.size = size
+
+class FinderInterface(Protocol):
+    def create_hashes_from_directory(self, directory: Path) -> list[CombinedImageHash]: ...
+    def get_similar_images(self, image_hashes: list[CombinedImageHash]) -> list[list[CombinedImageHash]]: ...
+
+class BruteForceFinder:
+    hasher: ImageHasher
+    def __init__(self, hasher: ImageHasher):
+        self.hasher = hasher
 
     def create_hashes_from_directory(self, directory: Path) -> list[CombinedImageHash]:
         exts = {"png", "jpg", "jpeg"}
         image_hashes: list[CombinedImageHash] = list()
 
-        for ext in exts:
-            image_paths = Path(directory).rglob(f"*.{ext}")
-            for image_path in image_paths:
-                img = Image.open(image_path)
-                phash = self.global_phash(img)
-                crophash = self.crop_resistant_hash(img)
-                image_hashes.append(CombinedImageHash(path=image_path, hash=phash, cropped_hash=crophash))
+        n_thread = 4
+        with ProcessPoolExecutor(max_workers=n_thread) as executor:
+            futures: list[Future[CombinedImageHash]] = list()
+            for ext in exts:
+                for image_path in Path(directory).rglob(f"*.{ext}"):
+                    futures.append(executor.submit(self.hasher.create_hash_from_image, image_path))
 
-                self.logger.print(f"[INFO] - hashing \"{image_path}\"")
+            for future in as_completed(futures):
+                result = future.result()
+                image_hashes.append(result)
+                self.hasher.logger.info(f"hashing \"{result.path}\"")
 
         image_hashes.sort(key=lambda x: imagehash_to_int(x.hash))
 
@@ -66,8 +73,7 @@ class ImageHasher:
                     nearest_matches.append([img1, img2])
                     matching_segments, distance = img1.cropped_hash.hash_diff(img2.cropped_hash)
 
-                    self.logger.print(
-                        f"[MATCH] - \n" +
+                    self.hasher.logger.match(
                         f"\tLeft: {img1.path}\n" + 
                         f"\tRight: {img2.path}\n" + 
                         f"\tGlobal Difference: {abs(img1.hash - img2.hash)}\n" +
@@ -75,6 +81,23 @@ class ImageHasher:
                     )
 
         return nearest_matches
+
+class ANNFinder:
+    pass
+
+
+class ImageHasher:
+    size: int
+    logger: logger.Logger
+    def __init__(self, logger: logger.Logger, size: int = 8):
+        self.logger = logger
+        self.size = size
+
+    def create_hash_from_image(self, image_path: Path):
+        img = Image.open(image_path)
+        phash = self.global_phash(img)
+        crophash = self.crop_resistant_hash(img)
+        return CombinedImageHash(path=image_path, hash=phash, cropped_hash=crophash)
 
     def alpharemover(self, image: Image.Image):
         if image.mode != 'RGBA':
@@ -97,3 +120,5 @@ class ImageHasher:
     def crop_resistant_hash(self, img: PILImage) -> imagehash.ImageMultiHash:
         image = self.alpharemover(img)
         return imagehash.crop_resistant_hash(image=image, min_segment_size=100) # pyright: ignore[reportUnknownMemberType]
+
+
