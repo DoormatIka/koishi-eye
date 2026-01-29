@@ -37,21 +37,25 @@ class FinderInterface(Protocol):
     def create_hashes_from_directory(self, directory: Path) -> list[CombinedImageHash]: ...
     def get_similar_images(self, image_hashes: list[CombinedImageHash]) -> list[list[CombinedImageHash]]: ...
 
+def get_supported_extensions():
+    ext_reading = {ext for ext, fmt in Image.registered_extensions() if fmt in Image.OPEN}
+    return ext_reading
+
 class BruteForceFinder:
     hasher: ImageHasher
     def __init__(self, hasher: ImageHasher):
         self.hasher = hasher
 
+
     def create_hashes_from_directory(self, directory: Path) -> list[CombinedImageHash]:
-        exts = {"png", "jpg", "jpeg"}
+        exts = get_supported_extensions()
         image_hashes: list[CombinedImageHash] = list()
 
         n_thread = os.cpu_count()
         if n_thread == None:
             raise ValueError("OS cpu count cannot be found!")
 
-        n_thread = max(n_thread, 2)
-        n_thread = 1
+        n_thread = max(n_thread - 2, 2)
         with ProcessPoolExecutor(max_workers=n_thread) as executor:
             futures: list[Future[ImageHashResult]] = list()
             for ext in exts:
@@ -74,7 +78,7 @@ class BruteForceFinder:
     def get_similar_images(self, image_hashes: list[CombinedImageHash]) -> list[ImagePair]:
         nearest_matches: list[ImagePair] = list()
 
-        with ProcessPoolExecutor(max_workers=1) as executor:
+        with ProcessPoolExecutor() as executor:
             futures: list[Future[ImagePair | None]] = list()
             for i, img1 in enumerate(image_hashes):
                 for img2 in image_hashes[i + 1:]:
@@ -87,7 +91,7 @@ class BruteForceFinder:
                 img1, img2 = val
                 matching_segments, distance = img1.cropped_hash.hash_diff(img2.cropped_hash)
                 self.hasher.logger.match(
-                    f"\tLeft: {img1.path}\n" + 
+                    f" Left: {img1.path}\n" + 
                     f"\tRight: {img2.path}\n" + 
                     f"\tGlobal Difference: {abs(img1.hash - img2.hash)}\n" +
                     f"\tCropped Difference: (matching_segments: {matching_segments}, distance: {distance})\n"
