@@ -5,18 +5,21 @@ from pathlib import Path
 from finders.types import ImagePair
 import hashers.image
 import finders.bruteforce
+import gui.gui
+
+import flet as ft
 
 parser = argparse.ArgumentParser(description="Fuzzy duplicate image finder.")
 _ = parser.add_argument("-i", "--input", help="A folder to scan.")
 _ = parser.add_argument("-d", "--delete", action='store_true', help="Enable automatic deletion of files.")
 
-def scan_from_directory(directory: Path, _is_delete: bool = False) -> list[ImagePair]: # prototype
+async def scan_from_directory(directory: Path, _is_delete: bool = False) -> list[ImagePair]: # prototype
     print(f"[START] - Parsing through {directory}")
 
     imghasher = hashers.image.ImageHasher(log=logger.MatchLogger(), size=16)
     bf = finders.bruteforce.BruteForceFinder(hasher=imghasher)
 
-    hashes = bf.create_hashes_from_directory(directory)
+    hashes = await bf.create_hashes_from_directory(directory)
     similar_images = bf.get_similar_objects(hashes)
 
     return similar_images
@@ -37,5 +40,6 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    _ = ft.run(gui.gui.flet_main) # gui builder
+    # main()
 

@@ -3,7 +3,7 @@
 - program should be able to handle any number of images
   - never store the entire folder's images in memory long-term, e.g: pushing images from outside the main loop
 
-## stage 1: main
+## main
 
 using PyNNDescent as the ANN.
 
@@ -22,3 +22,9 @@ building the index is an `O(n * log(n) * d)` operation, and querying is an `O(lo
 
 bonus features: have a bar that says how many files are finished indexing and compared to.
 use OS-specific commands for this: linux - `find . -type f | wc -l`, win - `(Get-ChildItem -Recurse -File | Measure-Object).Count`
+
+## commands
+
+`flet build linux` - compiling into a binary, [help](https://docs.flet.dev/cli/flet-build/#usage)
+
+`flet run -r src/main.py` - run developer mode
