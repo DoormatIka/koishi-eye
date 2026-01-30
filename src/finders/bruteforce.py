@@ -20,7 +20,6 @@ class BruteForceFinder:
     def __init__(self, hasher: ImageHasher):
         self.hasher = hasher
 
-
     def create_hashes_from_directory(self, directory: Path) -> list[CombinedImageHash]:
         exts = get_supported_extensions()
         image_hashes: list[CombinedImageHash] = list()

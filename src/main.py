@@ -1,16 +1,16 @@
-import os
-from pathlib import Path
-
-import hashers.image
-import finders.bruteforce
 import logger
 import argparse
+from pathlib import Path
+
+from finders.types import ImagePair
+import hashers.image
+import finders.bruteforce
 
 parser = argparse.ArgumentParser(description="Fuzzy duplicate image finder.")
 _ = parser.add_argument("-i", "--input", help="A folder to scan.")
 _ = parser.add_argument("-d", "--delete", action='store_true', help="Enable automatic deletion of files.")
 
-def scan_from_directory(directory: Path, is_delete: bool = False): # prototype
+def scan_from_directory(directory: Path, _is_delete: bool = False) -> list[ImagePair]: # prototype
     print(f"[START] - Parsing through {directory}")
 
     imghasher = hashers.image.ImageHasher(log=logger.MatchLogger(), size=16)
@@ -18,14 +18,8 @@ def scan_from_directory(directory: Path, is_delete: bool = False): # prototype
 
     hashes = bf.create_hashes_from_directory(directory)
     similar_images = bf.get_similar_objects(hashes)
-    if is_delete:
-        for img1, img2 in similar_images:
-            # extremely basic quality check, replace with something else later.
-            if img1.pixel_count >= img2.pixel_count:
-                os.remove(img2.path)
-            else:
-                os.remove(img1.path)
 
+    return similar_images
 
 def main():
     args = parser.parse_args()
@@ -34,10 +28,10 @@ def main():
     if inp:
         dir_path = Path(inp)
         if dir_path.is_dir():
-            _ = scan_from_directory(dir_path, is_delete=is_delete)
+            _ = scan_from_directory(dir_path, _is_delete=is_delete)
             print("Finished.")
         else:
-            print("[ERROR] - Please pass in a directory.")
+            parser.print_help()
     else:
         parser.print_help()
 
