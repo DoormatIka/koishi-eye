@@ -3,7 +3,7 @@ import flet as ft
 
 
 def flet_main(page: ft.Page):
-    page.title = "koishi's eye"
+    page.title = "koisee"
     page.window.resizable = True
     page.window.width = 700
     page.window.height = 400
