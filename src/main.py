@@ -6,6 +6,7 @@ from finders.types import ImagePair
 import hashers.image
 import finders.bruteforce
 import gui.gui
+import gui.config
 
 import flet as ft
 
@@ -40,6 +41,6 @@ def main():
 
 
 if __name__ == "__main__":
-    _ = ft.run(gui.gui.flet_main) # gui builder
+    _ = ft.run(before_main=gui.config.config, main=gui.gui.flet_main) # gui builder
     # main()
 
