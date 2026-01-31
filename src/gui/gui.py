@@ -1,31 +1,14 @@
 
 import flet as ft
 
-from gui.components.file_picker import FilePicker
-from gui.components.card_images import ImageCardRow
+from gui.router.router import Router
+from gui.views.entry import entry_page
 
 
-weight_clrs = {
-    ft.Colors.AMBER_800: 5,
-    ft.Colors.BLUE_800: 10,
-}
+async def flet_main(page: ft.Page):
+    router = Router(page=page)
+    router.add_route(route="/", container=entry_page())
 
-
-def flet_main(page: ft.Page):
-    col = ft.Column(
-        alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
-        controls=[
-            ImageCardRow(matched_images=[]),
-            FilePicker(),
-        ],
-    )
-
-    c = ft.Container(
-        alignment=ft.Alignment.CENTER,
-        content=col,
-        expand=True,
-    )
-
-    page.add(c)
-
+    # print(page.route)
+    await page.push_route(page.route)
 
