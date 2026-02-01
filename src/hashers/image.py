@@ -22,6 +22,7 @@ class ImageHasher:
         try:
             with Image.open(image_path) as img:
                 phash = self.global_phash(img)
+                # phash = self.global_mean_phash(img)
                 crophash = self.crop_resistant_hash(img)
                 width, height = img.size
 
@@ -35,9 +36,12 @@ class ImageHasher:
             return None, str(e)
 
     def alpharemover(self, image: Image.Image):
-        if image.mode == 'RGBA':
-            return image.convert('RGB')
-        return image
+        if image.mode != 'RGBA':
+            return image
+        canvas = Image.new('RGBA', image.size, (255, 255, 255, 255))
+        canvas.paste(image, mask=image)
+        return canvas.convert('RGB')
+
 
     def global_phash(self, img: PILImage):
         img = img.convert('L').resize((self.size, self.size), Image.Resampling.NEAREST)

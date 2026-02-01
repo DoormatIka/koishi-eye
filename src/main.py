@@ -6,9 +6,6 @@ from finders.types import ImagePair
 import hashers.image
 import finders.bruteforce
 import asyncio
-import gui.gui
-
-import flet as ft
 
 parser = argparse.ArgumentParser(description="Fuzzy duplicate image finder.")
 _ = parser.add_argument("-i", "--input", help="A folder to scan.")

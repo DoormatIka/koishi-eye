@@ -28,7 +28,7 @@ class Logger: # color code per log level: info, warn, match
     def __init__(self):
         _ = sys.stdout.write(self.SAVE)
         _ = sys.stdout.flush()
-        tracemalloc.start()
+        # tracemalloc.start()
 
     def _draw(self, tag: str, s: str):
         _ = sys.stdout.write(self.RESTORE)
@@ -48,6 +48,7 @@ class Logger: # color code per log level: info, warn, match
         self._draw("MATCH", s)
 
     def point(self) -> None:
+        return
         snapshot = tracemalloc.take_snapshot()
         if self.previous_snapshot != None:
             s = self.previous_snapshot.compare_to(snapshot, key_type="lineno")

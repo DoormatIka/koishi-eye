@@ -31,10 +31,12 @@ class BruteForceFinder:
         self.hasher.log.point()
 
         n_thread = max(n_thread - 2, 2)
+        n_images = 0
         with ProcessPoolExecutor(max_workers=n_thread) as executor:
             futures: list[Future[ImageHashResult]] = list()
             for ext in exts:
                 for image_path in Path(directory).rglob(f"*{ext}"):
+                    n_images += 1
                     futures.append(executor.submit(self.hasher.create_hash_from_image, image_path))
 
             for future in as_completed(futures):
@@ -46,6 +48,9 @@ class BruteForceFinder:
                     self.hasher.log.warn(err or "")
 
         self.hasher.log.point()
+        self.hasher.log.next_line()
+        self.hasher.log.info(f"# of images: {n_images}")
+        self.hasher.log.next_line()
 
         image_hashes.sort(key=lambda x: imagehash_to_int(x.hash))
 
@@ -93,5 +98,6 @@ def is_similar_image(img1: CombinedImageHash, img2: CombinedImageHash) -> ImageP
 
 def get_supported_extensions():
     ext_reading = {ext for ext, fmt in Image.registered_extensions().items() if fmt in Image.OPEN}
+    ext_reading.remove(".gif")
     return ext_reading       
 

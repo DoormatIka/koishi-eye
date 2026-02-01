@@ -33,4 +33,6 @@ use OS-specific commands for this: linux - `find . -type f | wc -l`, win - `(Get
 
 `/usr/bin/time -v uv run src/main.py` - basic memory + time benchmarking
 
-`PYTHONFAULTHANDLER=1 uv run src/main.py` - prints the python stack and C extensions
+`scalene run --outfile report.json src/main.py -i /home/mualice/Downloads/`
+
+`scalene view --standalone report.json`
