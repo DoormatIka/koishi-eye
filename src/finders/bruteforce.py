@@ -55,6 +55,7 @@ class BruteForceFinder:
             futures: list[Future[ImagePair | None]] = list()
             for i, img1 in enumerate(image_hashes):
                 for img2 in image_hashes[i + 1:]:
+                    self.hasher.log.info(f"comparing \n\t{img1.path}\n\t{img2.path}")
                     futures.append(executor.submit(is_similar_image, img1, img2))
 
             for future in as_completed(futures):
