@@ -36,8 +36,17 @@ async def main():
     else:
         parser.print_help()
 
+def quality_test_fn():
+    imghasher = hashers.image.ImageHasher(log=logger.Logger(), size=16)
+    h1, err = imghasher.create_hash_from_image(Path("/home/mualice/Downloads/G_Cfm4LbgAA9BrY.png"))
+    h2, err = imghasher.create_hash_from_image(Path("/home/mualice/Downloads/G_Cfm4LbgAA9BrY (copy).jpg"))
+    if h1 != None and h2 != None:
+        print(h1.hash - h2.hash)
+    else:
+        print(err)
 
 if __name__ == "__main__":
     # _ = ft.run(gui.gui.flet_main) # gui builder
+    quality_test_fn()
     asyncio.run(main())
 

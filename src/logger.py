@@ -45,6 +45,7 @@ class Logger: # color code per log level: info, warn, match
     def warn(self, s: str) -> None:
         self._draw("WARN", s)
     def match(self, s: str) -> None:
+        self.next_line()
         self._draw("MATCH", s)
 
     def point(self) -> None:
