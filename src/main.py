@@ -5,6 +5,7 @@ from pathlib import Path
 from finders.types import ImagePair
 import hashers.image
 import finders.bruteforce
+import asyncio
 import gui.gui
 
 import flet as ft
@@ -16,7 +17,7 @@ _ = parser.add_argument("-d", "--delete", action='store_true', help="Enable auto
 async def scan_from_directory(directory: Path, _is_delete: bool = False) -> list[ImagePair]: # prototype
     print(f"[START] - Parsing through {directory}")
 
-    imghasher = hashers.image.ImageHasher(log=logger.MatchLogger(), size=16)
+    imghasher = hashers.image.ImageHasher(log=logger.Logger(), size=16)
     bf = finders.bruteforce.BruteForceFinder(hasher=imghasher)
 
     hashes = await bf.create_hashes_from_directory(directory)
@@ -24,14 +25,14 @@ async def scan_from_directory(directory: Path, _is_delete: bool = False) -> list
 
     return similar_images
 
-def main():
+async def main():
     args = parser.parse_args()
     is_delete = bool(args.delete) # pyright: ignore[reportAny]
     inp = str(args.input) # pyright: ignore[reportAny]
     if inp:
         dir_path = Path(inp)
         if dir_path.is_dir():
-            _ = scan_from_directory(dir_path, _is_delete=is_delete)
+            _ = await scan_from_directory(dir_path, _is_delete=is_delete)
             print("Finished.")
         else:
             parser.print_help()
@@ -41,5 +42,5 @@ def main():
 
 if __name__ == "__main__":
     # _ = ft.run(gui.gui.flet_main) # gui builder
-    main()
+    asyncio.run(main())
 
