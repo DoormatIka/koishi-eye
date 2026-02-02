@@ -1,7 +1,6 @@
 
 import os
 import random
-import numpy as np
 
 from pathlib import Path
 from concurrent.futures import ProcessPoolExecutor, Future, as_completed
@@ -33,19 +32,43 @@ def create_random_key_index() -> list[int]:
     resolution = 16
     return [random.randint(0, 63) for _ in range(resolution)]
 
-class LSHBucketFinder[T]():
+type Bucket = LSHBucket[CombinedImageHash]
+type Buckets = list[Bucket]
+
+class LSHBucketFinder():
     hasher: ImageHasher
-    buckets: list[LSHBucket[T]]
+    buckets: Buckets
     def __init__(self, hasher: ImageHasher, resolution: int = 8):
         self.buckets = self._create_buckets_(resolution=resolution)
         self.hasher = hasher
 
     def _create_buckets_(self, resolution: int = 8):
-        buckets: list[LSHBucket[T]] = list()
-        lshbucket = LSHBucket[T](key_indexes=create_random_key_index())
+        buckets: Buckets = list()
+        lshbucket: Bucket = LSHBucket(key_indexes=create_random_key_index())
+
         for _ in range(0, resolution):
             buckets.append(lshbucket)
         return buckets
+
+    def _add_image_to_buckets_(self, image_path: Path):
+        matched: tuple[Bucket, int] | None = None
+
+        res, err = self.hasher.create_hash_from_image(image_path)
+        if res == None:
+            self.hasher.log.warn(err or "Unknown error.")
+            return
+        bool_hash: list[bool] = res.hash.hash.flatten().tolist()
+
+        for bucket in self.buckets:
+            similarity = bucket.get_key_similarity(bool_hash)
+            if matched != None and similarity > matched[1]:
+                matched = (bucket, similarity)
+            if matched == None:
+                matched = (bucket, similarity)
+                
+        if matched != None:
+            bucket, similarity = matched
+            bucket.bucket.append(res)
 
     async def create_hashes_from_directory(self, directory: Path):
         exts = get_supported_extensions()
@@ -60,6 +83,7 @@ class LSHBucketFinder[T]():
         for ext in exts:
             for image_path in Path(directory).rglob(f"*{ext}"):
                 pass
+                
 
     def get_similar_objects(self, image_hashes: None):
         pass
