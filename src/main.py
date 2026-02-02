@@ -1,8 +1,9 @@
+from hashers.types import CombinedImageHash
 import logger
 import argparse
 from pathlib import Path
 
-from finders.types import ImagePair
+from finders.types import FinderInterface, ImagePair
 import hashers.image
 import finders.bruteforce
 import asyncio
@@ -15,7 +16,7 @@ async def scan_from_directory(directory: Path, _is_delete: bool = False) -> list
     print(f"[START] - Parsing through {directory}")
 
     imghasher = hashers.image.ImageHasher(log=logger.Logger(), size=16)
-    bf = finders.bruteforce.BruteForceFinder(hasher=imghasher)
+    bf: FinderInterface[list[CombinedImageHash], list[ImagePair]] = finders.bruteforce.BruteForceFinder(hasher=imghasher)
 
     hashes = await bf.create_hashes_from_directory(directory)
     similar_images = bf.get_similar_objects(hashes)
