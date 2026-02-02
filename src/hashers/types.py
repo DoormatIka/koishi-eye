@@ -7,7 +7,6 @@ import imagehash
 @dataclass
 class CombinedImageHash:
     path: Path
-    cropped_hash: imagehash.ImageMultiHash
     hash: imagehash.ImageHash
     pixel_count: int
 

@@ -2,8 +2,7 @@
 import numpy as np
 import imagehash
 
-from PIL import Image, UnidentifiedImageError
-from PIL.Image import Image as PILImage
+from PIL import Image, ImageFile, UnidentifiedImageError
 from pathlib import Path
 
 import logger
@@ -17,17 +16,15 @@ class ImageHasher:
         self.size = size
 
     def create_hash_from_image(self, image_path: Path) -> ImageHashResult:
+        ImageFile.LOAD_TRUNCATED_IMAGES = False
+
         try:
-            img = Image.open(image_path)
-            phash = self.global_phash(img)
-            crophash = self.crop_resistant_hash(img)
-            width, height = img.size
+            phash = self.global_phash(image_path)
 
             return CombinedImageHash(
                 path=image_path,
                 hash=phash,
-                cropped_hash=crophash,
-                pixel_count=width * height
+                pixel_count=100 # PLACEHOLDER
             ), None
         except (UnidentifiedImageError, OSError) as e:
             return None, str(e)
@@ -39,22 +36,34 @@ class ImageHasher:
         canvas.paste(image, mask=image)
         return canvas.convert('RGB')
 
-    def global_phash(self, img: PILImage):
-        img = img.convert('L').resize((self.size, self.size), Image.Resampling.NEAREST)
+    def _pil_grayscale_convert_to_np_arr(self, p: Path):
+        with Image.open(p) as img:
+            grayscale_img = img.convert('L')
 
-        data = np.ascontiguousarray(img.get_flattened_data()).reshape(-1)
+            resized_img = grayscale_img.resize((self.size, self.size), Image.Resampling.NEAREST)
+            del grayscale_img
+
+            arr = np.array(resized_img, dtype=np.uint8)
+            del resized_img
+
+            return arr
+
+    def global_phash(self, p: Path):
+        """
+        Converts an image into a perceptual hash.
+        """
+        arr = self._pil_grayscale_convert_to_np_arr(p)
+
+        img = Image.new(mode="L", size=(self.size, self.size))
         quantiles = np.arange(100)
-        quantiles_values = np.percentile(data, quantiles)
-        zdata = (np.interp(data, quantiles_values, quantiles) / 100 * 255).astype(np.uint8)
-        img.putdata(zdata)
+        quantiles_values = np.percentile(arr, quantiles)
+        zdata = (np.interp(arr, quantiles_values, quantiles) / 100 * 255).astype(np.uint8)
+        img.putdata(zdata.flatten())
 
-        return imagehash.phash(image=img)
+        hashed = imagehash.phash(image=img)
+        del img
 
-    def crop_resistant_hash(self, img: PILImage) -> imagehash.ImageMultiHash:
-        image = self.alpharemover(img)
-        return imagehash.crop_resistant_hash(image=image, min_segment_size=100) # pyright: ignore[reportUnknownMemberType]
-
-
+        return hashed
 
 def imagehash_to_int(h: imagehash.ImageHash) -> int:
     arr = h.hash # pyright: ignore[reportUnknownMemberType, reportUnknownVariableType]
