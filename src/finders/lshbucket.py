@@ -52,6 +52,20 @@ class LSHBucketFinder():
             buckets.append(lshbucket)
         return buckets
 
+    def _get_closest_matched_bucket_(self, bool_hash: list[bool]) -> Bucket | None:
+        matched: tuple[Bucket, int] | None = None
+        # preprocessing step for buckets, unoptimized.
+        for bucket in self.buckets: # getting the best match out of the buckets
+            similarity = bucket.get_key_similarity(bool_hash)
+            if matched != None and similarity > matched[1]:
+                matched = (bucket, similarity)
+            if matched == None:
+                matched = (bucket, similarity)
+        
+        if matched == None:
+            return
+        return matched[0]
+
     # adding an image is an O(k) operation, where k is the number of buckets
     # compared to the brute force finder, where the same operation is O(1)
     def _add_image_to_buckets_(self, image_path: Path):
@@ -60,21 +74,12 @@ class LSHBucketFinder():
             self.hasher.log.warn(err or "Unknown error.")
             return
 
-        matched: tuple[Bucket, int] | None = None
-        # preprocessing step for buckets, unoptimized.
         bool_hash: list[bool] = res.hash.hash.flatten().tolist()
-        for bucket in self.buckets: # getting the best match out of the buckets
-            similarity = bucket.get_key_similarity(bool_hash)
-            if matched != None and similarity > matched[1]:
-                matched = (bucket, similarity)
-            if matched == None:
-                matched = (bucket, similarity)
-                
-        if matched != None: # pushing the image hash to the best matched bucket
-            bucket, similarity = matched
-            bucket.bucket.append(res)
+        container = self._get_closest_matched_bucket_(bool_hash=bool_hash)
+        if container != None: # pushing the image hash to the best matched bucket
+            container.bucket.append(res)
 
-    async def create_hashes_from_directory(self, directory: Path):
+    async def create_hashes_from_directory(self, directory: Path) -> Buckets:
         exts = get_supported_extensions()
 
         for ext in exts:
@@ -83,5 +88,20 @@ class LSHBucketFinder():
 
         return self.buckets
 
-    def get_similar_objects(self, image_hashes: None):
-        pass
+    def get_similar_objects(self, image_hashes: Buckets) -> list[ImagePair]:
+        nearest_matches: list[ImagePair] = list()
+
+        for container in image_hashes:
+            # assuming the images are arranged to their closest container.
+            for i, img1 in enumerate(container.bucket):
+                for img2 in container.bucket[i + 1:]:
+                    if is_similar_image(img1, img2) != None:
+                        nearest_matches.append((img1, img2))
+
+        return nearest_matches
+                
+
+
+
+
+
