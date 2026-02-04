@@ -1,5 +1,5 @@
 
-import random
+import numpy as np
 
 from pathlib import Path
 
@@ -11,8 +11,6 @@ from finders.helpers import is_similar_image, get_supported_extensions
 
 from .bucket import HammingBucket
 
-
-# this is a very rudimentary LSH.
 
 type Bucket = HammingBucket[CombinedImageHash]
 type Buckets = list[Bucket]
@@ -39,7 +37,7 @@ class HammingClustererFinder():
             buckets.append(lshbucket)
         return buckets
 
-    def _get_closest_matched_bucket_(self, bool_hash: list[bool]) -> Bucket | None:
+    def _get_closest_matched_bucket_(self, bool_hash: int) -> Bucket | None:
         if not self.buckets:
             return None
                 
@@ -53,10 +51,10 @@ class HammingClustererFinder():
             self.hasher.log.warn(err or "Unknown error.")
             return
         
-        bool_hash: list[bool] = res.hash.hash.flatten().tolist()
+        key: int = nparr_bool_to_int(res.hash.hash)
 
         scored_buckets = [
-            (b.get_key_similarity(bool_hash), b)
+            (b.get_key_similarity(key), b)
             for b in self.buckets
         ]
         scored_buckets.sort(key=lambda x: x[0], reverse=True)
@@ -90,4 +88,10 @@ class HammingClustererFinder():
 
         return nearest_matches
                 
+
+def nparr_bool_to_int(arr: np.ndarray):
+    packed = np.packbits(arr)
+    return int.from_bytes(packed.tobytes(), byteorder="big")
+
+
 
