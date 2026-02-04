@@ -28,11 +28,11 @@ class HammingClustererFinder():
 
     def _create_buckets_(self, resolution: int):
         buckets: Buckets = list()
-        chunk_size = 64
+        chunk_size = 64 // resolution
 
         for i in range(resolution):
             start = i * chunk_size
-            end = start + chunk_size
+            end = start + chunk_size if i < resolution - 1 else 63
             indices = list(range(start, end))
 
             lshbucket: Bucket = HammingBucket(key_indexes=indices)
@@ -52,7 +52,7 @@ class HammingClustererFinder():
         if res == None:
             self.hasher.log.warn(err or "Unknown error.")
             return
-
+        
         bool_hash: list[bool] = res.hash.hash.flatten().tolist()
 
         scored_buckets = [
@@ -74,26 +74,20 @@ class HammingClustererFinder():
 
         return self.buckets
 
-    def get_similar_objects(self, image_hashes: Buckets) -> list[ImagePair]:
-        nearest_matches: list[ImagePair] = list()
-        checked_pairs: set[tuple[str, str]] = set()
+    def get_similar_objects(self, image_hashes: Buckets) -> set[ImagePair]:
+        nearest_matches: set[ImagePair] = set()
 
         for container in image_hashes:
             # assuming the images are arranged to their closest container.
             for i, img1 in enumerate(container.bucket):
                 for img2 in container.bucket[i + 1:]:
                     pair = tuple(sorted([str(img1.path), str(img2.path)]))
-                    if pair in checked_pairs:
+                    if pair in nearest_matches:
                         continue
 
                     if is_similar_image(img1, img2) != None:
-                        nearest_matches.append((img1, img2))
+                        nearest_matches.add((img1, img2))
 
         return nearest_matches
                 
-
-def create_random_key_index() -> list[int]:
-    resolution = 16
-    return [random.randint(0, 63) for _ in range(resolution)]
-
 
