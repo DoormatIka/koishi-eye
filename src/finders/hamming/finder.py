@@ -71,23 +71,16 @@ class HammingClustererFinder():
         path_generator = (p for ext in exts for p in Path(directory).rglob(f"*{ext}"))
 
         with ProcessPoolExecutor() as executor:
-            futures = {
-                executor.submit(self.hasher.create_hash_from_image, path): path 
-                for path in path_generator
-            }
+            for res, err in executor.map(
+                self.hasher.create_hash_from_image,
+                path_generator,
+                chunksize=8
+            ):
+                if res is None:
+                    self.hasher.log.warn(err or "Unknown error!")
+                    continue
 
-            # consumer loop in main thread
-            for future in as_completed(futures):
-                path = futures[future]
-                try:
-                    res, err = future.result()
-                    if res is None:
-                        self.hasher.log.warn(err or "Unknown error!")
-                        continue
-
-                    self._add_image_to_buckets_(combined=res)
-                except Exception as e:
-                    self.hasher.log.warn(f"Failed to hash {path.name}: {e}")
+                self._add_image_to_buckets_(combined=res)
 
         return self.buckets
 
