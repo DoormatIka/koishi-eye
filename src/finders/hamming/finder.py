@@ -1,12 +1,12 @@
 
+from asyncio import as_completed
 from queue import Queue
 from typing import cast
 import numpy as np
 from numpy.typing import NDArray
 
 from pathlib import Path
-from concurrent.futures import ThreadPoolExecutor
-from threading import BoundedSemaphore
+from concurrent.futures import ProcessPoolExecutor, as_completed
 
 from hashers.types import CombinedImageHash, ImageHashResult
 from hashers.image import ImageHasher
@@ -68,40 +68,27 @@ class HammingClustererFinder():
     async def create_hashes_from_directory(self, directory: Path) -> Buckets:
         exts = get_supported_extensions()
         # Limit the queue so threads don't hash 10,000 images before you can save 10
-        result_queue: Queue[tuple[Path, ImageHashResult | None]] = Queue(maxsize=50)
 
-        def producer(path: Path):
-            """Runs in a thread: Hashes the image and puts result in queue."""
-            try:
-                res = self.hasher.create_hash_from_image(path)
+        path_generator = (p for ext in exts for p in Path(directory).rglob(f"*{ext}"))
 
-                # blocks if the queue is full.
-                result_queue.put((path, res))
-            except Exception as e:
-                self.hasher.log.warn(f"Hash failed for {path}: {e}")
-                result_queue.put((path, None))
+        with ProcessPoolExecutor() as executor:
+            futures = {
+                executor.submit(self.hasher.create_hash_from_image, path): path 
+                for path in path_generator
+            }
 
-        with ThreadPoolExecutor(max_workers=4) as executor:
-            for ext in exts:
-                for image_path in Path(directory).rglob(f"*{ext}"):
-                    _ = executor.submit(producer, image_path)
-            
-            # A tiny hack: tell the consumer loop when the pool is finished
-            # We do this by submitting a task that waits for the pool to drain 
-            # or simply letting the main thread handle the loop logic.
-            
-            tasks_submitted = sum(1 for ext in exts for _ in Path(directory).rglob(f"*{ext}"))
-            
-            for _ in range(tasks_submitted):
-                _, res = result_queue.get() # Waits for the next result
-                if res == None:
-                    continue
-                c, _ = res
-                if c == None:
-                    continue
-                
-                self._add_image_to_buckets_(combined=c)
-                result_queue.task_done()
+            # consumer loop in main thread
+            for future in as_completed(futures):
+                path = futures[future]
+                try:
+                    res, err = future.result()
+                    if res is None:
+                        self.hasher.log.warn(err or "Unknown error!")
+                        continue
+
+                    self._add_image_to_buckets_(combined=res)
+                except Exception as e:
+                    self.hasher.log.warn(f"Failed to hash {path.name}: {e}")
 
         return self.buckets
 
