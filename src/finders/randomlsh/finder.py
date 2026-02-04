@@ -14,18 +14,12 @@ from .bucket import LSHBucket
 
 # this is a very rudimentary LSH.
 
-
-
-def create_random_key_index() -> list[int]:
-    resolution = 16
-    return [random.randint(0, 63) for _ in range(resolution)]
-
 type Bucket = LSHBucket[CombinedImageHash]
 type Buckets = list[Bucket]
 
 # this entire class relies on an assumption that LSH can have their similarity detected
 # with a random portion of their hash being matched.
-class LSHBucketFinder():
+class RandomLSHFinder():
     hasher: ImageHasher
     buckets: Buckets
     def __init__(self, hasher: ImageHasher, resolution: int = 8):
@@ -34,9 +28,14 @@ class LSHBucketFinder():
 
     def _create_buckets_(self, resolution: int = 8):
         buckets: Buckets = list()
+        chunk_size = 64
 
-        for _ in range(0, resolution):
-            lshbucket: Bucket = LSHBucket(key_indexes=create_random_key_index())
+        for i in range(resolution):
+            start = i * chunk_size
+            end = start + chunk_size
+            indices = list(range(start, end))
+
+            lshbucket: Bucket = LSHBucket(key_indexes=indices)
             buckets.append(lshbucket)
         return buckets
 
@@ -81,7 +80,8 @@ class LSHBucketFinder():
         return nearest_matches
                 
 
-
-
+def create_random_key_index() -> list[int]:
+    resolution = 16
+    return [random.randint(0, 63) for _ in range(resolution)]
 
 

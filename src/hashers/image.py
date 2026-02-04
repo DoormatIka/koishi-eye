@@ -48,7 +48,7 @@ class ImageHasher:
 
             return arr
 
-    def global_phash(self, p: Path):
+    def global_phash(self, p: Path) -> imagehash.ImageHash:
         """
         Converts an image into a perceptual hash.
         """
