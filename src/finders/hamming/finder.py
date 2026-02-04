@@ -1,5 +1,7 @@
 
+from typing import cast
 import numpy as np
+from numpy.typing import NDArray
 
 from pathlib import Path
 
@@ -50,8 +52,10 @@ class HammingClustererFinder():
         if res == None:
             self.hasher.log.warn(err or "Unknown error.")
             return
+
+        hash = cast(NDArray[np.bool], res.hash.hash)
         
-        key: int = nparr_bool_to_int(res.hash.hash)
+        key: int = nparr_bool_to_int(hash)
 
         scored_buckets = [
             (b.get_key_similarity(key), b)

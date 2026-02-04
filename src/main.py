@@ -4,7 +4,7 @@ from pathlib import Path
 
 from finders.types import FinderInterface, ImagePair
 import hashers.image
-from finders import HammingClustererFinder, Buckets, BruteForceFinder
+from finders import HammingClustererFinder, Buckets
 
 import asyncio
 
@@ -12,12 +12,12 @@ parser = argparse.ArgumentParser(description="Fuzzy duplicate image finder.")
 _ = parser.add_argument("-i", "--input", help="A folder to scan.")
 _ = parser.add_argument("-d", "--delete", action='store_true', help="Enable automatic deletion of files.")
 
-async def scan_from_directory(directory: Path, _is_delete: bool = False) -> list[ImagePair]: # prototype
+async def scan_from_directory(directory: Path, _is_delete: bool = False) -> set[ImagePair]: # prototype
     print(f"[START] - Parsing through {directory}")
 
     imghasher = hashers.image.ImageHasher(log=logger.MatchLogger(), size=16)
     # bf: FinderInterface[list[CombinedImageHash], list[ImagePair]] = finders.bruteforce.BruteForceFinder(hasher=imghasher)
-    bf: FinderInterface[Buckets, list[ImagePair]] = HammingClustererFinder(hasher=imghasher)
+    bf: FinderInterface[Buckets, set[ImagePair]] = HammingClustererFinder(hasher=imghasher)
 
     hashes = await bf.create_hashes_from_directory(directory)
     similar_images = bf.get_similar_objects(hashes)
