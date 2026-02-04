@@ -1,46 +1,94 @@
-import os
-from pathlib import Path
-
-import hasher
+from collections.abc import Collection
+from typing import cast
+import hashers
 import logger
 import argparse
+from pathlib import Path
+from typing import override
+from enum import Enum
+
+from finders import HammingClustererFinder, Buckets, BruteForceFinder, FinderInterface, ImagePair
+from hashers import ImageHasher, CombinedImageHash
+
+import asyncio
+
+class MethodAction(Enum):
+    BRUTE = "brute"
+    HAMMING = "hamming"
+    @override
+    def __str__(self) -> str:
+        return self.value
 
 parser = argparse.ArgumentParser(description="Fuzzy duplicate image finder.")
-_ = parser.add_argument("-i", "--input", help="A folder to scan.")
-_ = parser.add_argument("-d", "--delete", action='store_true', help="Enable automatic deletion of files.")
+_ = parser.add_argument("-i", "--input", 
+                        help="A folder to scan.")
+_ = parser.add_argument("-d", "--delete", 
+                        action='store_true', 
+                        help="Enable automatic deletion of files.")
+_ = parser.add_argument("-m", "--method", 
+                        type=MethodAction, 
+                        choices=list(MethodAction), 
+                        help="Choose what method to scan the folder with.")
 
-def scan_from_directory(directory: Path, is_delete: bool = False): # prototype
+async def brute_force(directory: Path):
+    imghasher = ImageHasher(log=logger.MatchLogger(), size=16)
+    bf: FinderInterface[list[CombinedImageHash], list[ImagePair]] = BruteForceFinder(hasher=imghasher)
+
+    hashes = await bf.create_hashes_from_directory(directory)
+    similar_images = bf.get_similar_objects(hashes)
+
+    return similar_images
+
+async def clusterer(directory: Path):
+    imghasher = ImageHasher(log=logger.MatchLogger(), size=16)
+    bf: FinderInterface[Buckets, set[ImagePair]] = HammingClustererFinder(hasher=imghasher)
+
+    hashes = await bf.create_hashes_from_directory(directory)
+    similar_images = bf.get_similar_objects(hashes)
+
+    return similar_images
+
+async def scan_from_directory(directory: Path, choice: MethodAction) -> Collection[ImagePair]: # prototype
     print(f"[START] - Parsing through {directory}")
+    if choice == MethodAction.BRUTE:
+        return await brute_force(directory)
+    if choice == MethodAction.HAMMING:
+        return await clusterer(directory)
 
-    imghasher = hasher.ImageHasher(log=logger.MatchLogger(), size=16)
-    finder = hasher.BruteForceFinder(hasher=imghasher)
-
-    hashes = finder.create_hashes_from_directory(directory)
-    similar_images = finder.get_similar_images(hashes)
-    if is_delete:
-        for img1, img2 in similar_images:
-            # extremely basic quality check, replace with something else later.
-            if img1.pixel_count >= img2.pixel_count:
-                os.remove(img2.path)
-            else:
-                os.remove(img1.path)
-
-
-def main():
+async def main():
     args = parser.parse_args()
-    is_delete = bool(args.delete) # pyright: ignore[reportAny]
+    _is_delete = bool(args.delete) # pyright: ignore[reportAny]
     inp = str(args.input) # pyright: ignore[reportAny]
-    if inp:
-        dir_path = Path(inp)
-        if dir_path.is_dir():
-            _ = scan_from_directory(dir_path, is_delete=is_delete)
-            print("Finished.")
-        else:
-            print("[ERROR] - Please pass in a directory.")
-    else:
+    method = cast(MethodAction, args.method)
+    if len(inp) <= 0:
         parser.print_help()
+        return
+    dir_path = Path(inp)
+    if not dir_path.is_dir():
+        parser.print_help()
+        return
 
+    nearest_matches = await scan_from_directory(dir_path, choice=method)
+    for img1, img2 in nearest_matches:
+        print(
+            f"Left: {img1.path}\n" + 
+                f"\tRight: {img2.path}\n" + 
+                f"\tGlobal Difference: {abs(img1.hash - img2.hash)}\n"
+        )
+    print(f"{len(nearest_matches)} matches found. Finished.")
+
+def quality_test_fn():
+    imghasher = hashers.image.ImageHasher(log=logger.Logger(), size=16)
+
+    h1, err = imghasher.create_hash_from_image(Path("/home/mualice/Downloads/G_Cfm4LbgAA9BrY.png"))
+    h2, err = imghasher.create_hash_from_image(Path("/home/mualice/Downloads/G_Cfm4LbgAA9BrY (copy).jpg"))
+    if h1 != None and h2 != None:
+        print(h2.hash - h1.hash)
+    else:
+        print(err)
 
 if __name__ == "__main__":
-    main()
+    # _ = ft.run(gui.gui.flet_main) # gui builder
+    # quality_test_fn()
+    asyncio.run(main())
 
