@@ -30,3 +30,11 @@ bonus features:
 `flet build linux` - compiling into a binary, [help](https://docs.flet.dev/cli/flet-build/#usage)
 
 `flet run -r src/main.py` - run developer mode
+
+## memory hunting
+
+`/usr/bin/time -v uv run src/main.py` - basic memory + time benchmarking
+
+`scalene run --outfile report.json src/main.py -i /home/mualice/Downloads/`
+
+`scalene view --standalone report.json`
