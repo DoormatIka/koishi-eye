@@ -10,7 +10,11 @@ from wrappers import clusterer
 
 class FileCardList(ft.Container):
     content: ft.Control | None
+    
+    _body: ft.Container
+    _image_count: ft.Text
     _column: ft.Column
+    _empty: ft.Container
     _observer: Observer
     def __init__(
         self, 
@@ -18,7 +22,6 @@ class FileCardList(ft.Container):
         width: float | None = None,
         height: float | None = None,
         expand: bool | None = None,
-        scroll: ft.ScrollMode | None = None,
         **kwargs: Any # pyright: ignore[reportAny, reportExplicitAny]
     ):
         super().__init__(
@@ -30,10 +33,31 @@ class FileCardList(ft.Container):
         observer.subscribe("directory", self.create_matches)
 
         self._column = ft.Column(
-            scroll=scroll,
+            scroll=ft.ScrollMode.AUTO,
             controls=[]
         )
-        self.content = self._column
+        self._empty = ft.Container(
+            content=ft.Text(
+                text_align=ft.TextAlign.CENTER,
+                value="No images found!",
+            ),
+            alignment=ft.Alignment.CENTER,
+            expand=True
+        )
+        self._image_count = ft.Text(
+            value=""
+        )
+        status = ft.Row(controls=[self._image_count])
+        
+        self._body = ft.Container(
+            expand=True,
+            alignment=ft.Alignment.TOP_LEFT,
+            content=self._empty,
+        )
+        self.content = ft.Column(
+            controls=[status, self._body],
+            expand=True
+        )
         self._observer = observer
 
     async def create_matches(self, directory: object):
@@ -41,9 +65,15 @@ class FileCardList(ft.Container):
 
         if isinstance(directory, str):
             image_matches = await clusterer(Path(directory))
-            for pair in image_matches:
-                row = ImageCardRow(pair)
-                self._column.controls.append(row)
+            if len(image_matches) <= 0:
+                self._body.content = self._empty
+            else:
+                for pair in image_matches:
+                    row = ImageCardRow(pair)
+                    self._column.controls.append(row)
+                self._body.content = self._column
+
+            self._image_count.value = f"Duplicate images: {len(image_matches)}"
 
         self.update()
 

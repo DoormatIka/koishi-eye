@@ -18,7 +18,6 @@ def entry_page(observer: Observer):
         alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
         controls=[
             FileCardList(
-                scroll=ft.ScrollMode.AUTO,
                 expand=True,
                 observer=observer
             ),

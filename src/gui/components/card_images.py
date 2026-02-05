@@ -11,6 +11,7 @@ class ImageCardRow(ft.Container):
     padding: ft.PaddingValue | None
     border_radius: ft.BorderRadiusValue | None
     bgcolor: ft.ColorValue | None
+    width: float | None
 
     def __init__(
         self, 
@@ -31,12 +32,13 @@ class ImageCardRow(ft.Container):
 
         img_row = ft.Row(
             controls=containers,
-            alignment=ft.MainAxisAlignment.START,
+            alignment=ft.MainAxisAlignment.CENTER,
             scroll=ft.ScrollMode.ADAPTIVE,
-            width=float("inf"),
+            expand=True
         )
 
-        self.content = ft.Column(controls=[img_row])
+        self.width = float("inf")
+        self.content = img_row
         self.padding = 10
         self.border_radius = 5
         self.bgcolor = ft.Colors.with_opacity(0.1, ft.Colors.GREY_300)
