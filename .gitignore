@@ -12,6 +12,7 @@ wheels/
 .git
 report.json
 scalene-profile.html
+profile*.svg
 
 # Virtual environments
 .venv

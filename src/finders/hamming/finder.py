@@ -1,11 +1,14 @@
 
+from asyncio import as_completed
+from queue import Queue
 from typing import cast
 import numpy as np
 from numpy.typing import NDArray
 
 from pathlib import Path
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, as_completed
 
-from hashers.types import CombinedImageHash
+from hashers.types import CombinedImageHash, ImageHashResult
 from hashers.image import ImageHasher
 
 from finders.types import ImagePair
@@ -47,13 +50,8 @@ class HammingClustererFinder():
 
     # adding an image is an O(k) operation, where k is the number of buckets
     # compared to the brute force finder, where the same operation is O(1)
-    def _add_image_to_buckets_(self, image_path: Path, top_k: int = 2):
-        res, err = self.hasher.create_hash_from_image(image_path)
-        if res == None:
-            self.hasher.log.warn(err or "Unknown error.")
-            return
-
-        hash = cast(NDArray[np.bool], res.hash.hash)
+    def _add_image_to_buckets_(self, combined: CombinedImageHash, top_k: int = 2):
+        hash = cast(NDArray[np.bool], combined.hash.hash)
         
         key: int = nparr_bool_to_int(hash)
 
@@ -65,14 +63,24 @@ class HammingClustererFinder():
 
         for i in range(min(top_k, len(scored_buckets))):
             _, container = scored_buckets[i]
-            container.bucket.append(res)
+            container.bucket.append(combined)
 
     async def create_hashes_from_directory(self, directory: Path) -> Buckets:
         exts = get_supported_extensions()
 
-        for ext in exts:
-            for image_path in Path(directory).rglob(f"*{ext}"):
-                self._add_image_to_buckets_(image_path=image_path)
+        path_generator = (p for ext in exts for p in Path(directory).rglob(f"*{ext}"))
+
+        with ProcessPoolExecutor() as executor:
+            for res, err in executor.map(
+                self.hasher.create_hash_from_image,
+                path_generator,
+                chunksize=8
+            ):
+                if res is None:
+                    self.hasher.log.warn(err or "Unknown error!")
+                    continue
+
+                self._add_image_to_buckets_(combined=res)
 
         return self.buckets
 
