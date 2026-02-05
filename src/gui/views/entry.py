@@ -16,7 +16,7 @@ def entry_page(observer: Observer):
         alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
         controls=[
             ImageCardRow(matched_images=[]),
-            FilePicker(),
+            FilePicker(observer=observer),
         ],
     )
 
