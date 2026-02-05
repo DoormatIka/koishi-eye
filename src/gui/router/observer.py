@@ -9,11 +9,7 @@ class AppState:
     directory: str | None = None
 
 StateKey = Literal["directory"]
-ObserverFn = Callable[[object], None | Awaitable[None]]
-
-
-def is_async_result(res: Any) -> TypeGuard[Awaitable[None]]: # pyright: ignore[reportAny, reportExplicitAny]
-    return inspect.isawaitable(res) # pyright: ignore[reportAny]
+ObserverFn = Callable[[object], None]
 
 class Observer:
     state: AppState
@@ -26,13 +22,11 @@ class Observer:
             self._fns[key] = []
         self._fns[key].append(on_key)
 
-    async def notify(self, key: StateKey, payload: object):
+    def notify(self, key: StateKey, payload: object):
         # Update the actual state first
         setattr(self.state, key, payload)
         
         # Tell everyone about it
         if key in self._fns:
             for fn in self._fns[key]:
-                res = fn(payload)
-                if inspect.isawaitable(res):
-                    await res
+                fn(payload)

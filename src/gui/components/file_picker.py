@@ -35,10 +35,6 @@ class FilePicker(ft.Container):
         self.content = btn
 
     async def g(self):
-        path = await self.get_dir()
-        await self._observer.notify("directory", path)
-
-    async def get_dir(self):
         dir_path = await ft.FilePicker().get_directory_path(dialog_title="pick folder to scan")
-        return dir_path
+        await self._observer.notify("directory", dir_path)
 
