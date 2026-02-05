@@ -1,14 +1,12 @@
 
-from asyncio import as_completed
-from queue import Queue
 from typing import cast
 import numpy as np
 from numpy.typing import NDArray
 
 from pathlib import Path
-from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, as_completed
+from concurrent.futures import ProcessPoolExecutor
 
-from hashers.types import CombinedImageHash, ImageHashResult
+from hashers.types import CombinedImageHash
 from hashers.image import ImageHasher
 
 from finders.types import ImagePair
