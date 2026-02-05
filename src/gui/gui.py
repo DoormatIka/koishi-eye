@@ -7,12 +7,9 @@ from gui.views.entry import entry_page
 
 async def flet_main(page: ft.Page):
     router = Router(page=page)
-    router.add_route(route="/", container=entry_page())
+    await page.push_route("/")
 
-    # works properly.
-    page.views.append(ft.View(route="/", controls=[ft.Text(value="hi")]))
-    # check if self.page.views and page.views are in the same memory.
+    router.add_route(route="/main", container=entry_page())
 
-    # print(page.route)
-    await page.push_route(page.route)
+    await page.push_route("/main")
 

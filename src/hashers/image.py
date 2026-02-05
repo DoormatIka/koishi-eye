@@ -5,13 +5,13 @@ import imagehash
 from PIL import Image, ImageFile, UnidentifiedImageError
 from pathlib import Path
 
-import logger
+from cli import BlankLogger
 from hashers.types import CombinedImageHash, ImageHashResult
 
 class ImageHasher:
     size: int
-    log: logger.BlankLogger
-    def __init__(self, log: logger.BlankLogger, size: int = 8):
+    log: BlankLogger
+    def __init__(self, log: BlankLogger, size: int = 8):
         self.log = log
         self.size = size
 

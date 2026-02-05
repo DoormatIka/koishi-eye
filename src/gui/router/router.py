@@ -14,10 +14,8 @@ class Router:
         self.page = page
         self.routes: dict[str, ft.Container] = {}
         self.page.on_route_change = self.on_route_change
-        print("Router init.")
 
     def on_route_change(self, e: ft.RouteChangeEvent):
-        print(f"on route change triggered: {e.route}")
         self.page.views.clear()
         container = self.routes.get(e.route)
         if container == None:

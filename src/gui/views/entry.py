@@ -12,6 +12,7 @@ weight_clrs = {
 
 
 def entry_page():
+
     col = ft.Column(
         alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
         controls=[
