@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import Any
 import flet as ft
 
-from gui.router.observer import Observer
+from gui.router.observer import AppState, Observer
 from gui.components.card_row import ImageCardRow
 from wrappers import clusterer
 
@@ -50,9 +50,9 @@ class FileCardList(ft.Container):
         status = ft.Row(controls=[self._image_count])
         
         self._body = ft.Container(
-            expand=True,
             alignment=ft.Alignment.TOP_LEFT,
             content=self._empty,
+            expand=True,
         )
         self.content = ft.Column(
             controls=[status, self._body],
@@ -60,7 +60,7 @@ class FileCardList(ft.Container):
         )
         self._observer = observer
 
-    async def create_matches(self, directory: object):
+    async def create_matches(self, _: AppState, directory: object):
         self._column.controls.clear()
 
         if isinstance(directory, str):

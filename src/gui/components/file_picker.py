@@ -22,7 +22,7 @@ class FilePicker(ft.Container):
             **kwargs # pyright: ignore[reportAny]
         )
         self._observer = observer
-        observer.subscribe("directory", lambda e: print(e))
+        observer.subscribe("directory", lambda s, o: print(s, o))
 
         btn = ft.Button(
             content="Pick folder",

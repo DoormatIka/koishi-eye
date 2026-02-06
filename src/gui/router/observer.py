@@ -16,7 +16,8 @@ StateKey = Literal[
     "selected_images"
 ]
 # add AppState to Callable soon.
-ObserverFn = Callable[[object], None | Awaitable[None]]
+ObserverFn = Callable[[AppState, object], None | Awaitable[None]]
+
 
 class Observer:
     state: AppState
@@ -30,11 +31,9 @@ class Observer:
         self._fns[key].append(on_key)
 
     async def notify(self, key: StateKey, payload: object):
-        setattr(self.state, key, payload)
-        
         if key in self._fns:
             for fn in self._fns[key]:
                 if inspect.iscoroutinefunction(fn):
-                    await fn(payload)
+                    await fn(self.state, payload)
                 else:
-                    _ = fn(payload)
+                    _ = fn(self.state, payload)

@@ -1,7 +1,7 @@
 
 from collections.abc import Collection
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, cast
 import flet as ft
 
 from gui.router.observer import Observer
@@ -20,6 +20,7 @@ class ImageCardRow(ft.Container):
     bgcolor: ft.ColorValue | None
     width: float | None
 
+    _observer: Observer
     _views: list[ImageView]
     _selected_image: int | None
     def __init__(
@@ -37,7 +38,7 @@ class ImageCardRow(ft.Container):
             expand=expand,
             **kwargs # pyright: ignore[reportAny]
         )
-
+        self._observer = observer
         views = self.create_model_images(images)
 
         img_row = ft.Row(
@@ -83,20 +84,29 @@ class ImageCardRow(ft.Container):
             stack = ft.Stack(controls=[imgui, icon], clip_behavior=ft.ClipBehavior.HARD_EDGE)
             container = ft.Container(
                 content=stack,
-                on_click=lambda _, i=i: self.toggle_delete(i),
+                on_click=self.make_toggle_event(i),
                 data=ModelImage(hash=img)
             )
             containers.append(ImageView(container, icon))
 
         return containers
 
-    def toggle_delete(self, i: int):
+    def make_toggle_event(self, i: int):
+        async def tog():
+            await self.toggle_delete(i)
+        return tog
+
+    async def toggle_delete(self, i: int):
         if self._selected_image != None:
             selected = self._views[self._selected_image]
+            data = cast(ModelImage, selected.container.data)
+            await self._observer.notify("selected_images", ("delete", data))
             selected.icon.visible = False
 
         self._selected_image = i
         selected = self._views[self._selected_image]
+        data = cast(ModelImage, selected.container.data)
+        await self._observer.notify("selected_images", ("add", data))
         selected.icon.visible = True
 
         self.update()
