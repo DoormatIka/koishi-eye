@@ -53,6 +53,10 @@ class FileCardList(ft.Container):
         self._image_count = ft.Text(
             value=""
         )
+        def clear_image_count(_a: AppState, _b: object):
+            self._image_count.value = "Cleared duplicate images!"
+        bus.subscribe("DELETE_SEL_IMG", clear_image_count)
+
         status = ft.Row(controls=[self._image_count])
         
         self.content = ft.Column(

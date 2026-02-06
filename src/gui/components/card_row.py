@@ -1,9 +1,11 @@
 
 from collections.abc import Collection
 from dataclasses import dataclass
-from typing import Any, cast
+from typing import Any, Literal, cast
+import uuid
 import flet as ft
 
+from gui.payload_types import SelectedImageResult
 from gui.router.observer import EventBus
 from hashers.types import CombinedImageHash
 from gui.models.image import ModelImage
@@ -14,18 +16,19 @@ class ImageView:
     icon: ft.Icon
 
 class ImageCardRow(ft.Container):
+    id: str
     content: ft.Control | None
     padding: ft.PaddingValue | None
     border_radius: ft.BorderRadiusValue | None
     bgcolor: ft.ColorValue | None
     width: float | None
 
-    _observer: EventBus
+    _bus: EventBus
     _views: list[ImageView]
     _selected_image: int | None
     def __init__(
         self, 
-        observer: EventBus,
+        bus: EventBus,
         images: Collection[CombinedImageHash],
         width: float | None = None,
         height: float | None = None,
@@ -38,7 +41,8 @@ class ImageCardRow(ft.Container):
             expand=expand,
             **kwargs # pyright: ignore[reportAny]
         )
-        self._observer = observer
+        self._bus = bus
+        self.id = str(uuid.uuid4())
         views = self.create_model_images(images)
 
         img_row = ft.Row(
@@ -96,18 +100,44 @@ class ImageCardRow(ft.Container):
             await self.toggle_delete(i)
         return tog
 
-    async def toggle_delete(self, i: int):
-        if self._selected_image != None:
-            selected = self._views[self._selected_image]
-            data = cast(ModelImage, selected.container.data)
-            await self._observer.notify("selected_images", ("delete", data))
-            selected.icon.visible = False
+    async def _deselect_current(self):
+        """Handles the UI and Bus notification for removing a selection."""
+        if self._selected_image is None:
+            return
 
+        view = self._views[self._selected_image]
+        view.icon.visible = False
+        
+        await self._notify_bus(view, action="delete")
+
+    async def _select_new(self, i: int):
+        """Handles the UI and Bus notification for adding a selection."""
         self._selected_image = i
-        selected = self._views[self._selected_image]
-        data = cast(ModelImage, selected.container.data)
-        await self._observer.notify("selected_images", ("add", data))
-        selected.icon.visible = True
+        view = self._views[i]
+        view.icon.visible = True
+        
+        await self._notify_bus(view, action="add")
 
+    async def _notify_bus(self, view: ImageView, action: Literal["add", "delete"]):
+        """Helper to package the SelectedImageResult and send it to the bus."""
+        data = cast(ModelImage, view.container.data)
+        payload = SelectedImageResult(
+            id=self.id,
+            row=self,
+            model=data,
+        )
+        await self._bus.notify("modify_selected_images", (action, payload))
+
+    async def toggle_delete(self, i: int):
+        """Entry point for the click event."""
+        if self._selected_image == i:
+            await self._deselect_current()
+            self._selected_image = None
+        else:
+            if self._selected_image is not None:
+                await self._deselect_current()
+            
+            await self._select_new(i)
+        
         self.update()
 

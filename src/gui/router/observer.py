@@ -4,17 +4,18 @@ from dataclasses import dataclass, field
 import inspect
 from typing import Literal
 
-from gui.models.image import ModelImage
+from gui.payload_types import SelectedImageResult
 
 @dataclass
 class AppState:
     directory: str | None = None
-    selected_images: set[ModelImage] = field(default_factory=set)
+    selected_images: dict[str, SelectedImageResult] = field(default_factory=dict)
 
 StateKey = Literal[
     "directory", 
-    "selected_images",
-    "SEVERE_APP_ERROR"
+    "modify_selected_images",
+    "DELETE_SEL_IMG",
+    "SEVERE_APP_ERROR",
 ]
 # add AppState to Callable soon.
 ObserverFn = Callable[[AppState, object], None | Awaitable[None]]

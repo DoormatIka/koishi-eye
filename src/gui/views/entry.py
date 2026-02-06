@@ -3,10 +3,10 @@ from typing import cast
 import flet as ft
 
 from gui.components.card_list import FileCardList
-from gui.components.file_picker import FilePicker
 
+from gui.components.task_row import TaskRow
 from gui.router.observer import AppState, EventBus
-from gui.payload_types import DirectoryResult, SelectedImageResult
+from gui.payload_types import DirectoryResult, SelectedImageAction
 
 """
 Hello! This code uses an event bus to pass data around the UI.
@@ -16,8 +16,10 @@ def entry_page(page: ft.Page, bus: EventBus):
     manage_app_errors = make_manage_errors(page)
 
     bus.subscribe("directory", manage_directory)
-    bus.subscribe("selected_images", manage_selected_images)
+    bus.subscribe("modify_selected_images", manage_selected_images)
+    bus.subscribe("DELETE_SEL_IMG", delete_selected_images)
     bus.subscribe("SEVERE_APP_ERROR", manage_app_errors)
+
 
     col = ft.Column(
         expand=True,
@@ -27,7 +29,7 @@ def entry_page(page: ft.Page, bus: EventBus):
                 expand=True,
                 bus=bus
             ),
-            FilePicker(bus=bus),
+            TaskRow(bus=bus),
         ],
     )
 
@@ -57,10 +59,24 @@ def manage_directory(state: AppState, payload: object):
         state.directory = payload
 
 def manage_selected_images(state: AppState, payload: object):
-    cmd, model_image = cast(SelectedImageResult, payload)
-    if cmd == "add":
-        state.selected_images.add(model_image)
-    if cmd == "delete":
-        state.selected_images.discard(model_image)
+    action, res = cast(SelectedImageAction, payload)
 
+    if action == "add":
+        state.selected_images[res.id] = res
+
+    if action == "delete":
+        _ = state.selected_images.pop(res.id)
+
+def delete_selected_images(state: AppState, _: object):
+    for row_id, result in list(state.selected_images.items()):
+        parent = result.row.parent
+        if isinstance(parent, (ft.Column, ft.Row, ft.ListView)):
+            try:
+                parent.controls.remove(result.row)
+                print(f"Row: {result.id}, {result.model.path} is deleted.")
+                parent.update()
+            except (ValueError, Exception) as e:
+                print(f"Error on manage_selected_images: {e}")
+    
+    state.selected_images.clear()
 
