@@ -2,14 +2,14 @@
 from typing import Any
 import flet as ft
 
-from gui.router.observer import Observer
+from gui.router.observer import EventBus
 
 class FilePicker(ft.Container):
     content: ft.Control | None
-    _observer: Observer
+    _observer: EventBus
     def __init__(
         self, 
-        observer: Observer,
+        observer: EventBus,
         width: float | None = None,
         height: float | None = None,
         expand: bool | None = None,

@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import Any
 import flet as ft
 
-from gui.router.observer import AppState, Observer
+from gui.router.observer import AppState, EventBus
 from gui.components.card_row import ImageCardRow
 from wrappers import clusterer
 
@@ -15,10 +15,10 @@ class FileCardList(ft.Container):
     _image_count: ft.Text
     _column: ft.Column
     _empty: ft.Container
-    _observer: Observer
+    _observer: EventBus
     def __init__(
         self, 
-        observer: Observer,
+        observer: EventBus,
         width: float | None = None,
         height: float | None = None,
         expand: bool | None = None,

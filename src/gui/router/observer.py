@@ -19,7 +19,7 @@ StateKey = Literal[
 ObserverFn = Callable[[AppState, object], None | Awaitable[None]]
 
 
-class Observer:
+class EventBus:
     state: AppState
     _fns: dict[StateKey, list[ObserverFn]]
     def __init__(self, state: AppState):

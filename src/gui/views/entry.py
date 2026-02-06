@@ -5,10 +5,14 @@ import flet as ft
 from gui.components.card_list import FileCardList
 from gui.components.file_picker import FilePicker
 
-from gui.router.observer import AppState, Observer
+from gui.router.observer import AppState, EventBus
 from gui.payload_types import DirectoryResult, SelectedImageResult
 
-def entry_page(observer: Observer):
+"""
+Hello! This code uses an event bus to pass data around the UI.
+"""
+
+def entry_page(observer: EventBus):
     observer.subscribe("directory", manage_directory)
     observer.subscribe("selected_images", manage_selected_images)
 

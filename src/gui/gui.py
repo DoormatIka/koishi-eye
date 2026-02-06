@@ -4,10 +4,10 @@ import flet as ft
 from gui.router.router import Router
 from gui.views.entry import entry_page
 
-from gui.router.observer import AppState, Observer
+from gui.router.observer import AppState, EventBus
 
 async def flet_main(page: ft.Page):
-    observer = Observer(AppState())
+    observer = EventBus(AppState())
 
     router = Router(page=page)
     await page.push_route("/")

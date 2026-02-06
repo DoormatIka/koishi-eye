@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from typing import Any, cast
 import flet as ft
 
-from gui.router.observer import Observer
+from gui.router.observer import EventBus
 from hashers.types import CombinedImageHash
 from gui.models.image import ModelImage
 
@@ -20,12 +20,12 @@ class ImageCardRow(ft.Container):
     bgcolor: ft.ColorValue | None
     width: float | None
 
-    _observer: Observer
+    _observer: EventBus
     _views: list[ImageView]
     _selected_image: int | None
     def __init__(
         self, 
-        observer: Observer,
+        observer: EventBus,
         images: Collection[CombinedImageHash],
         width: float | None = None,
         height: float | None = None,
