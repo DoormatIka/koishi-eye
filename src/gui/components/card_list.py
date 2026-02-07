@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Any
 import flet as ft
 
+from gui.payload_types import ImageMatchPayload
 from gui.router.observer import AppState, EventBus
 from gui.components.card_row import ImageCardRow
 from wrappers import clusterer
@@ -12,7 +13,6 @@ class FileCardList(ft.Container):
     content: ft.Control | None
     
     _body: ft.Container
-    _image_count: ft.Text
     _column: ft.Column
     _empty: ft.Container
     _bus: EventBus
@@ -50,19 +50,7 @@ class FileCardList(ft.Container):
             expand=True,
         )
 
-        self._image_count = ft.Text(
-            value=""
-        )
-        def clear_image_count(_a: AppState, _b: object):
-            self._image_count.value = "Cleared duplicate images!"
-        bus.subscribe("DELETE_SEL_IMG", clear_image_count)
-
-        status = ft.Row(controls=[self._image_count])
-        
-        self.content = ft.Column(
-            controls=[status, self._body],
-            expand=True
-        )
+        self.content = self._body
         self._bus = bus
 
     async def create_matches(self, _: AppState, directory: object):
@@ -72,14 +60,13 @@ class FileCardList(ft.Container):
             image_matches = await clusterer(Path(directory))
             if len(image_matches) <= 0:
                 self._body.content = self._empty
-                self._image_count.value = ""
             else:
                 for pair in image_matches:
                     row = ImageCardRow(self._bus, pair)
                     self._column.controls.append(row)
                 self._body.content = self._column
 
-            self._image_count.value = f"Duplicate images: {len(image_matches)}"
+            await self._bus.notify("MATCHES", ImageMatchPayload(total=len(image_matches)))
 
         self.update()
 

@@ -15,3 +15,6 @@ SelectedImageAction = tuple[SelectedImageActions, SelectedImageResult]
 
 DirectoryResult = str
 
+@dataclass
+class ImageMatchPayload:
+    total: int

@@ -11,13 +11,17 @@ class AppState:
     directory: str | None = None
     selected_images: dict[str, SelectedImageResult] = field(default_factory=dict)
 
+class Event:
+    # base class for typed events. subclass with dataclasses for payloads.
+    pass
+
 StateKey = Literal[
     "directory", 
     "modify_selected_images",
+    "MATCHES",
     "DELETE_SEL_IMG",
     "SEVERE_APP_ERROR",
 ]
-# add AppState to Callable soon.
 ObserverFn = Callable[[AppState, object], None | Awaitable[None]]
 
 

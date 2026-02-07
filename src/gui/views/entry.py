@@ -5,6 +5,7 @@ import flet as ft
 from gui.components.card_list import FileCardList
 
 from gui.components.task_row import TaskRow
+from gui.components.upper_row.upper_row import UpperBar
 from gui.router.observer import AppState, EventBus
 from gui.payload_types import DirectoryResult, SelectedImageAction
 
@@ -25,9 +26,10 @@ def entry_page(page: ft.Page, bus: EventBus):
         expand=True,
         alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
         controls=[
+            UpperBar(bus=bus),
             FileCardList(
+                bus=bus,
                 expand=True,
-                bus=bus
             ),
             TaskRow(bus=bus),
         ],
