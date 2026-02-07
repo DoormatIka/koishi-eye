@@ -37,3 +37,8 @@ class DeleteAllSelected(Event):
 class SevereAppError(Event):
     error: Exception
 
+@dataclass
+class ProgressUpdated(Event): # tie this to the cli logger.
+    current: int
+    total: int
+    log: str
