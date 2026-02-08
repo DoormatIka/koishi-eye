@@ -6,7 +6,7 @@ class BlankLogger(Protocol):
     def info(self, s: str) -> None: ...
     def warn(self, s: str) -> None: ...
     def match(self, s: str) -> None: ...
-    def point(self) -> None: ...
+    def snapshot(self) -> None: ...
     def next_line(self) -> None: ...
 
 class MatchLogger:
@@ -16,7 +16,7 @@ class MatchLogger:
         pass
     def match(self, s: str) -> None:
         print(f"[MATCH] - {s}")
-    def point(self) -> None:
+    def snapshot(self, ) -> None:
         pass
     def next_line(self) -> None:
         pass
@@ -47,5 +47,5 @@ class Logger: # color code per log level: info, warn, match
         self.next_line()
         self._draw("MATCH", s)
 
-    def point(self) -> None:
+    def progress(self) -> None:
         return

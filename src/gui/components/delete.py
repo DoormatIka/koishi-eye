@@ -3,7 +3,7 @@ from typing import Any
 import flet as ft
 
 from gui.payload_types import DeleteAllSelected
-from gui.router.bus import EventBus
+from gui.router.bus import AppEventBus
 
 class DeleteButton(ft.Container):
     content: ft.Control | None
@@ -12,10 +12,10 @@ class DeleteButton(ft.Container):
     bgcolor: ft.ColorValue | None
     width: float | None
 
-    _bus: EventBus
+    _bus: AppEventBus
     def __init__(
         self, 
-        bus: EventBus,
+        bus: AppEventBus,
         width: float | None = None,
         height: float | None = None,
         expand: bool | None = None,

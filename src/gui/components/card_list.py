@@ -4,7 +4,7 @@ from typing import Any
 import flet as ft
 
 from gui.payload_types import Directory, ImageUpdate
-from gui.router.bus import AppState, EventBus
+from gui.router.bus import AppState, AppEventBus
 from gui.components.card_row import ImageCardRow
 from wrappers import clusterer
 
@@ -16,10 +16,10 @@ class FileCardList(ft.Container):
     _body: ft.Container
     _column: ft.Column
     _empty: ft.Container
-    _bus: EventBus
+    _bus: AppEventBus
     def __init__(
         self, 
-        bus: EventBus,
+        bus: AppEventBus,
         width: float | None = None,
         height: float | None = None,
         expand: bool | None = None,

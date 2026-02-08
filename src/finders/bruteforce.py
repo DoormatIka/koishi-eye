@@ -28,7 +28,7 @@ class BruteForceFinder:
         if n_thread == None:
             raise ValueError("OS cpu count cannot be found!")
 
-        self.hasher.log.point()
+        self.hasher.log.progress()
 
         n_thread = max(n_thread - 2, 2)
         n_images = 0
@@ -47,7 +47,7 @@ class BruteForceFinder:
                 else:
                     self.hasher.log.warn(err or "")
 
-        self.hasher.log.point()
+        self.hasher.log.progress()
         self.hasher.log.next_line()
         self.hasher.log.info(f"# of images: {n_images}")
         self.hasher.log.next_line()
@@ -61,7 +61,7 @@ class BruteForceFinder:
         nearest_matches: list[ImagePair] = list()
 
         self.hasher.log.next_line()
-        self.hasher.log.point()
+        self.hasher.log.progress()
 
         with ProcessPoolExecutor() as executor:
             futures: list[Future[ImagePair | None]] = list()
@@ -77,7 +77,7 @@ class BruteForceFinder:
                 img1, img2 = val
                 nearest_matches.append((img1, img2))
 
-        self.hasher.log.point()
+        self.hasher.log.progress()
 
         return nearest_matches
 

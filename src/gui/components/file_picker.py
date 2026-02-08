@@ -3,14 +3,14 @@ from typing import Any
 import flet as ft
 
 from gui.payload_types import Directory
-from gui.router.bus import EventBus
+from gui.router.bus import AppEventBus
 
 class FilePicker(ft.Container):
     content: ft.Control | None
-    _bus: EventBus
+    _bus: AppEventBus
     def __init__(
         self, 
-        bus: EventBus,
+        bus: AppEventBus,
         width: float | None = None,
         height: float | None = None,
         expand: bool | None = None,

@@ -4,7 +4,7 @@ import flet as ft
 from typing import Any
 
 from gui.components.upper_row.image_counter import ImageCounter
-from gui.router.bus import EventBus
+from gui.router.bus import AppEventBus
 
 class UpperBar(ft.Container):
     content: ft.Control | None
@@ -14,10 +14,10 @@ class UpperBar(ft.Container):
     width: float | None
 
     _image_count: ImageCounter
-    _bus: EventBus
+    _bus: AppEventBus
     def __init__(
         self, 
-        bus: EventBus,
+        bus: AppEventBus,
         width: float | None = None,
         height: float | None = None,
         expand: bool | None = None,

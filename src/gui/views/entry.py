@@ -5,14 +5,15 @@ from gui.components.card_list import FileCardList
 
 from gui.components.task_row import TaskRow
 from gui.components.upper_row.upper_row import UpperBar
-from gui.router.bus import AppState, EventBus
+from gui.router.bus import AppState, AppEventBus
 from gui.payload_types import DeleteAllSelected, Directory, SelectedAction, SevereAppError
 
 """
 Hello! This code uses an event bus to pass data around the UI.
 """
 
-def entry_page(page: ft.Page, bus: EventBus):
+
+def entry_page(page: ft.Page, bus: AppEventBus):
     manage_app_errors = make_manage_errors(page)
 
     bus.subscribe(Directory, manage_directory)

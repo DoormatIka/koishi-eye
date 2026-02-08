@@ -10,6 +10,8 @@ from hashers import ImageHasher, CombinedImageHash
 from typing import override
 from enum import Enum
 
+
+
 class MethodAction(Enum):
     BRUTE = "brute"
     HAMMING = "hamming"

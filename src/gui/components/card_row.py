@@ -6,7 +6,7 @@ import uuid
 import flet as ft
 
 from gui.payload_types import SelectedAction, SelectedPayload
-from gui.router.bus import EventBus
+from gui.router.bus import AppEventBus
 from hashers.types import CombinedImageHash
 from gui.models.image import ModelImage
 
@@ -23,12 +23,12 @@ class ImageCardRow(ft.Container):
     bgcolor: ft.ColorValue | None
     width: float | None
 
-    _bus: EventBus
+    _bus: AppEventBus
     _views: list[ImageView]
     _selected_image: int | None
     def __init__(
         self, 
-        bus: EventBus,
+        bus: AppEventBus,
         images: Collection[CombinedImageHash],
         width: float | None = None,
         height: float | None = None,

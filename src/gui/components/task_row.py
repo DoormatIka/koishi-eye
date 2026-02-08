@@ -4,7 +4,7 @@ import flet as ft
 from typing import Any
 
 from gui.components.delete import DeleteButton
-from gui.router.bus import EventBus
+from gui.router.bus import AppEventBus
 from gui.components.file_picker import FilePicker
 
 class TaskRow(ft.Container):
@@ -14,10 +14,10 @@ class TaskRow(ft.Container):
     bgcolor: ft.ColorValue | None
     width: float | None
 
-    _bus: EventBus
+    _bus: AppEventBus
     def __init__(
         self, 
-        bus: EventBus,
+        bus: AppEventBus,
         width: float | None = None,
         height: float | None = None,
         expand: bool | None = None,
