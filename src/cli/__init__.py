@@ -1,8 +1,8 @@
 
-from .logger import BlankLogger, MatchLogger, Logger
+from .logger import BlankLogger, MatchLogger, StyledCLILogger
 
 __all__ = [
     "BlankLogger",
     "MatchLogger",
-    "Logger"
+    "StyledCLILogger"
 ]

@@ -1,6 +1,54 @@
 
+from collections.abc import Awaitable, Callable
+from dataclasses import dataclass
+from pathlib import Path
 import sys
-from typing import Protocol
+from typing import Protocol, TypeVar
+
+from gui.events import Event
+from gui.infra.bus import PureEventBus
+
+
+class LoggerEvent(Event):
+    pass
+
+@dataclass
+class Info(LoggerEvent):
+    msg: str
+
+@dataclass
+class Warn(LoggerEvent):
+    msg: str
+
+@dataclass
+class Error(LoggerEvent):
+    ex: str
+
+@dataclass
+class Progress(LoggerEvent): # we do not know the total number of files being scanned.
+    path: Path
+    is_complete: bool
+    current: int
+
+
+LoggerEventT = TypeVar("LoggerEventT", bound=LoggerEvent)
+LoggerObserver = Callable[[None, LoggerEventT], None | Awaitable[None]]
+class Logger:
+    bus: PureEventBus[None]
+    def __init__(self):
+        self.bus = PureEventBus(on_error=self.on_error)
+
+    async def on_error(self, _: None, event: LoggerEvent, e: Exception):
+        if isinstance(event, Error):
+            print(f"Recursed SEVERE_APP_ERROR handler exception: ", e)
+        else:
+            await self.notify(Error(str(e)))
+
+    def subscribe(self, event: type[LoggerEventT], handler: LoggerObserver[LoggerEventT]) -> None:
+        self.bus.subscribe(event, handler)
+
+    async def notify(self, event: LoggerEvent):
+        await self.bus.notify(None, event)
 
 
 class BlankLogger(Protocol):
@@ -22,7 +70,7 @@ class MatchLogger:
     def next_line(self) -> None:
         pass
 
-class Logger: # color code per log level: info, warn, match
+class StyledCLILogger: # color code per log level: info, warn, match
     SAVE: str = "\033[s"
     RESTORE: str = "\033[u"
     CLEAR_DOWN: str = "\033[J"

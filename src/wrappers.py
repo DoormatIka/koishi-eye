@@ -1,7 +1,7 @@
 
 from pathlib import Path
 
-from cli.logger import MatchLogger
+from cli.logger import Logger, MatchLogger
 from collections.abc import Collection
 
 from finders import HammingClustererFinder, Buckets, BruteForceFinder, FinderInterface, ImagePair
@@ -22,7 +22,7 @@ class MethodAction(Enum):
 
 
 async def brute_force(directory: Path):
-    imghasher = ImageHasher(log=MatchLogger(), size=16)
+    imghasher = ImageHasher(log=Logger(), size=16)
     bf: FinderInterface[list[CombinedImageHash], list[ImagePair]] = BruteForceFinder(hasher=imghasher)
 
     hashes = await bf.create_hashes_from_directory(directory)
@@ -31,7 +31,7 @@ async def brute_force(directory: Path):
     return similar_images
 
 async def clusterer(directory: Path):
-    imghasher = ImageHasher(log=MatchLogger(), size=16)
+    imghasher = ImageHasher(log=Logger(), size=16)
     bf: FinderInterface[Buckets, set[ImagePair]] = HammingClustererFinder(hasher=imghasher)
 
     hashes = await bf.create_hashes_from_directory(directory)

@@ -6,7 +6,7 @@ from gui.components.card_list import FileCardList
 from gui.components.task_row import TaskRow
 from gui.components.upper_row.upper_row import UpperBar
 from gui.infra.bus import AppState, AppEventBus
-from gui.events import DeleteAllSelected, Directory, SelectedAction, SevereAppError
+from gui.events import DeleteAllSelected, Directory, ImageUpdate, SelectedAction, SevereAppError
 
 """
 Hello! This code uses an event bus to pass data around the UI.
@@ -20,6 +20,7 @@ def entry_page(page: ft.Page, bus: AppEventBus):
     bus.subscribe(SelectedAction, manage_selected_images)
     bus.subscribe(DeleteAllSelected, delete_selected_images)
     bus.subscribe(SevereAppError, manage_app_errors)
+    bus.subscribe(ImageUpdate, image_update)
 
 
     col = ft.Column(
@@ -67,7 +68,9 @@ def manage_selected_images(state: AppState, action: SelectedAction):
         _ = state.selected_images.pop(action.payload.id)
 
 def delete_selected_images(state: AppState, _: DeleteAllSelected):
-    for row_id, result in list(state.selected_images.items()):
+    selected_list = list(state.selected_images.items())
+
+    for row_id, result in selected_list:
         parent = result.row.parent
         if isinstance(parent, (ft.Column, ft.Row, ft.ListView)):
             try:
@@ -77,5 +80,8 @@ def delete_selected_images(state: AppState, _: DeleteAllSelected):
             except (ValueError, Exception) as e:
                 print(f"Error on manage_selected_images: {e}")
     
+    state.total_images -= len(selected_list)
     state.selected_images.clear()
 
+def image_update(state: AppState, payload: ImageUpdate):
+    state.total_images = payload.total

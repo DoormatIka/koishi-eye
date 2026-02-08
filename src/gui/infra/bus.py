@@ -71,3 +71,4 @@ class AppEventBus:
     async def notify(self, event: UIEvent):
         await self.bus.notify(self.state, event)
 
+

@@ -3,7 +3,7 @@ import flet as ft
 
 from typing import Any
 
-from gui.events import ImageUpdate
+from gui.events import DeleteAllSelected, ImageUpdate
 from gui.infra.bus import AppState, AppEventBus
 
 class ImageCounter(ft.Container):
@@ -29,9 +29,8 @@ class ImageCounter(ft.Container):
             expand=expand,
             **kwargs # pyright: ignore[reportAny]
         )
-        bus.subscribe(ImageUpdate, self.on_matches)
-        # TODO:
-        # bus.subscribe("DELETE_SEL_IMG", self.on_deleted_images)
+        bus.subscribe(ImageUpdate, self.on_image_update)
+        bus.subscribe(DeleteAllSelected, self.on_delete_selected)
         self._image_count = ft.Text(
             value=""
         )
@@ -39,10 +38,9 @@ class ImageCounter(ft.Container):
         self._bus = bus
         self.content = self._image_count
 
-    def on_matches(self, _: AppState, payload: ImageUpdate):
+    def on_image_update(self, _: AppState, payload: ImageUpdate):
         self._image_count.value = f"Duplicate images: {payload.total}"
-
-    def on_deleted_images(self, state: AppState, _: object):
-        self._image_count.value = f"Duplicate images: {len(state.selected_images)}"
         
+    def on_delete_selected(self, state: AppState, _: DeleteAllSelected):
+        self._image_count.value = f"Duplicate images: {state.total_images}"
 
