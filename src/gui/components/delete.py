@@ -3,7 +3,7 @@ from typing import Any
 import flet as ft
 
 from gui.events import DeleteAllSelected
-from gui.router.bus import AppEventBus
+from gui.infra.bus import AppEventBus
 
 class DeleteButton(ft.Container):
     content: ft.Control | None

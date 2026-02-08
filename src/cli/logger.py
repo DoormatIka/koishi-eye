@@ -3,7 +3,6 @@ import sys
 from typing import Protocol
 
 
-
 class BlankLogger(Protocol):
     def info(self, s: str) -> None: ...
     def warn(self, s: str) -> None: ...
@@ -18,7 +17,7 @@ class MatchLogger:
         pass
     def match(self, s: str) -> None:
         print(f"[MATCH] - {s}")
-    def snapshot(self, ) -> None:
+    def snapshot(self) -> None:
         pass
     def next_line(self) -> None:
         pass

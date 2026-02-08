@@ -6,7 +6,7 @@ import uuid
 import flet as ft
 
 from gui.events import SelectedAction, SelectedPayload
-from gui.router.bus import AppEventBus
+from gui.infra.bus import AppEventBus
 from hashers.types import CombinedImageHash
 from gui.models.image import ModelImage
 

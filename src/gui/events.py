@@ -1,9 +1,14 @@
 
 from dataclasses import dataclass
 from typing import Literal
-from gui.models.image import ModelImage
+
+from typing import TYPE_CHECKING
+
 
 import flet as ft
+
+if TYPE_CHECKING:
+    from gui.models.image import ModelImage
 
 class Event:
     # base class for typed events. subclass with dataclasses for payloads.
@@ -21,7 +26,7 @@ class Directory(UIEvent):
 class SelectedPayload:
     id: str
     row: ft.Container
-    model: ModelImage
+    model: "ModelImage"
 
 @dataclass
 class SelectedAction(UIEvent):

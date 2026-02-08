@@ -4,7 +4,7 @@ from typing import Any
 import flet as ft
 
 from gui.events import Directory, ImageUpdate
-from gui.router.bus import AppState, AppEventBus
+from gui.infra.bus import AppState, AppEventBus
 from gui.components.card_row import ImageCardRow
 from wrappers import clusterer
 
@@ -59,6 +59,7 @@ class FileCardList(ft.Container):
         if obj.directory is None:
             raise ValueError("Directory is null!")
 
+        print(f"create_matches: {obj}")
         image_matches = await clusterer(Path(obj.directory))
         if len(image_matches) <= 0:
             self._body.content = self._empty

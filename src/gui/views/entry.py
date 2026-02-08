@@ -5,7 +5,7 @@ from gui.components.card_list import FileCardList
 
 from gui.components.task_row import TaskRow
 from gui.components.upper_row.upper_row import UpperBar
-from gui.router.bus import AppState, AppEventBus
+from gui.infra.bus import AppState, AppEventBus
 from gui.events import DeleteAllSelected, Directory, SelectedAction, SevereAppError
 
 """

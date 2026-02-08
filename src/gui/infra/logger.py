@@ -1,0 +1,6 @@
+
+class GUILogger:
+    pass
+
+
+

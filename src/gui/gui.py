@@ -1,10 +1,10 @@
 
 import flet as ft
 
-from gui.router.router import Router
+from gui.infra.router import Router
 from gui.views.entry import entry_page
 
-from gui.router.bus import AppState, AppEventBus
+from gui.infra.bus import AppState, AppEventBus
 
 async def flet_main(page: ft.Page):
     observer = AppEventBus(AppState())
