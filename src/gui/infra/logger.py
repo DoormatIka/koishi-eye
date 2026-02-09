@@ -8,8 +8,8 @@ import queue
 import asyncio
 from multiprocessing.queues import Queue
 
-from gui.events import Event
-from gui.infra.bus import PureEventBus
+from src.gui.events import Event
+from src.gui.infra.bus import PureEventBus
 
 
 class LoggerEvent(Event):

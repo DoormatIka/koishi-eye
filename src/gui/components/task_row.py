@@ -3,9 +3,9 @@ import flet as ft
 
 from typing import Any
 
-from gui.components.delete import DeleteButton
-from gui.infra.app_bus import AppEventBus
-from gui.components.file_picker import FilePicker
+from src.gui.components.delete import DeleteButton
+from src.gui.infra.app_bus import AppEventBus
+from src.gui.components.file_picker import FilePicker
 
 class TaskRow(ft.Container):
     content: ft.Control | None

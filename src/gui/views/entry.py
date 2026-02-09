@@ -2,13 +2,13 @@
 import pprint
 import flet as ft
 
-from gui.components.card_list import FileCardList
+from src.gui.components.card_list import FileCardList
 
-from gui.components.task_row import TaskRow
-from gui.components.upper_row.upper_row import UpperBar
-from gui.infra.app_bus import AppState, AppEventBus
-from gui.events import DeleteAllSelected, Directory, ImageUpdate, SelectedAction, SevereAppError
-from gui.infra.logger import Logger, Progress
+from src.gui.components.task_row import TaskRow
+from src.gui.components.upper_row.upper_row import UpperBar
+from src.gui.infra.app_bus import AppState, AppEventBus
+from src.gui.events import DeleteAllSelected, Directory, ImageUpdate, SelectedAction, SevereAppError
+from src.gui.infra.logger import Logger, Progress
 
 """
 Hello! This code uses an event bus to pass data around the UI.

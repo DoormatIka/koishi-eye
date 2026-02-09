@@ -1,15 +1,15 @@
 
-from gui.events import SelectedPayload
+from src.gui.events import SelectedPayload
 
 from collections.abc import Awaitable, Callable
 from typing import TypeVar
 
-from gui.events import UIEvent, SevereAppError
-from gui.infra.bus import PureEventBus
-from gui.infra.logger import Logger, QueueLogger
+from src.gui.events import UIEvent, SevereAppError
+from src.gui.infra.bus import PureEventBus
+from src.gui.infra.logger import Logger, QueueLogger
 
-from finders import Buckets, FinderInterface, HammingClustererFinder, ImagePair
-from hashers import ImageHasher
+from src.finders import Buckets, FinderInterface, HammingClustererFinder, ImagePair
+from src.hashers import ImageHasher
 
 
 class AppState:

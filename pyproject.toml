@@ -12,6 +12,10 @@ dependencies = [
     "pillow>=12.1.0",
 ]
 
+[tool.basedpyright]
+reportImplicitRelativeImport = "error"
+reportMissingModuleSource = "error" # Or "warning"
+
 [tool.flet]
 project = "koisee"
 product = "koisee"

@@ -3,8 +3,8 @@ import flet as ft
 
 from typing import Any
 
-from gui.events import DeleteAllSelected, ImageUpdate
-from gui.infra.app_bus import AppState, AppEventBus
+from src.gui.events import DeleteAllSelected, ImageUpdate
+from src.gui.infra.app_bus import AppState, AppEventBus
 
 class ImageCounter(ft.Container):
     content: ft.Control | None
@@ -38,8 +38,8 @@ class ImageCounter(ft.Container):
         self._bus = bus
         self.content = self._image_count
 
-    def on_image_update(self, _: AppState, payload: ImageUpdate):
-        self._image_count.value = f"Duplicate images: {payload.total}"
+    def on_image_update(self, state: AppState, _: ImageUpdate):
+        self._image_count.value = f"Duplicate images: {state.total_images}"
         
     def on_delete_selected(self, state: AppState, _: DeleteAllSelected):
         self._image_count.value = f"Duplicate images: {state.total_images}"

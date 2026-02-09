@@ -5,10 +5,10 @@ from typing import Any, Literal, cast
 import uuid
 import flet as ft
 
-from gui.events import SelectedAction, SelectedPayload
-from gui.infra.app_bus import AppEventBus
-from hashers.types import CombinedImageHash
-from gui.models.image import ModelImage
+from src.gui.events import SelectedAction, SelectedPayload
+from src.gui.infra.app_bus import AppEventBus
+from src.hashers.types import CombinedImageHash
+from src.gui.models.image import ModelImage
 
 @dataclass
 class ImageView:

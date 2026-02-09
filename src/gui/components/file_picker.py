@@ -2,8 +2,8 @@
 from typing import Any
 import flet as ft
 
-from gui.events import Directory
-from gui.infra.app_bus import AppEventBus
+from src.gui.events import Directory
+from src.gui.infra.app_bus import AppEventBus
 
 class FilePicker(ft.Container):
     content: ft.Control | None

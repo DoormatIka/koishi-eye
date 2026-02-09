@@ -1,7 +1,7 @@
 
 from pathlib import Path
 
-from gui.infra.logger import Logger
+from src.gui.infra.logger import Logger
 from collections.abc import Collection
 
 from finders import HammingClustererFinder, Buckets, BruteForceFinder, FinderInterface, ImagePair

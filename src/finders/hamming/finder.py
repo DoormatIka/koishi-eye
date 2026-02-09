@@ -9,13 +9,13 @@ from pathlib import Path
 from concurrent.futures import ProcessPoolExecutor
 from itertools import islice
 
-from gui.infra.logger import Error, HasherLogger, Info, Progress
-from hashers import ImageHashResult
-from hashers.types import CombinedImageHash
-from hashers.image import ImageHasher
+from src.gui.infra.logger import Error, HasherLogger, Info, Progress
+from src.hashers import ImageHashResult
+from src.hashers.types import CombinedImageHash
+from src.hashers.image import ImageHasher
 
-from finders.types import ImagePair
-from finders.helpers import is_similar_image, get_supported_extensions
+from src.finders.types import ImagePair
+from src.finders.helpers import is_similar_image, get_supported_extensions
 
 from .bucket import HammingBucket
 

@@ -1,5 +1,5 @@
 
-from hashers.types import CombinedImageHash
+from src.hashers.types import CombinedImageHash
 
 
 class ModelImage(CombinedImageHash):

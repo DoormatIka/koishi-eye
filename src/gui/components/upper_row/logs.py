@@ -3,8 +3,8 @@ import flet as ft
 
 from typing import Any
 
-from gui.infra.app_bus import AppEventBus
-from gui.infra.logger import Logger, Progress, Info
+from src.gui.infra.app_bus import AppEventBus
+from src.gui.infra.logger import Logger, Progress, Info
 
 class Logs(ft.Container):
     content: ft.Control | None

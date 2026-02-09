@@ -3,9 +3,9 @@ from pathlib import Path
 from typing import Any
 import flet as ft
 
-from gui.events import Directory, ImageUpdate
-from gui.infra.app_bus import AppState, AppEventBus
-from gui.components.card_row import ImageCardRow
+from src.gui.events import Directory, ImageUpdate
+from src.gui.infra.app_bus import AppState, AppEventBus
+from src.gui.components.card_row import ImageCardRow
 
 
 class FileCardList(ft.Container):
@@ -58,10 +58,9 @@ class FileCardList(ft.Container):
         if obj.directory is None:
             raise ValueError("Directory is null!")
 
-        print(f"create_matches: {obj}")
-        image_matches = await state.finder.create_hashes_from_directory(Path(obj.directory))
-        similar_images = state.finder.get_similar_objects(image_matches)
-        if len(image_matches) <= 0:
+        image_hashes = await state.finder.create_hashes_from_directory(Path(obj.directory))
+        similar_images = state.finder.get_similar_objects(image_hashes)
+        if len(image_hashes) <= 0:
             self._body.content = self._empty
         else:
             for pair in similar_images:
@@ -69,7 +68,7 @@ class FileCardList(ft.Container):
                 self._column.controls.append(row)
             self._body.content = self._column
 
-        await self._bus.notify(ImageUpdate(total=len(image_matches)))
+        await self._bus.notify(ImageUpdate(total=len(similar_images)))
 
-        self.page.update()
+        self.update()
 

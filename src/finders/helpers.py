@@ -1,7 +1,7 @@
 
 from PIL import Image
-from finders.types import ImagePair
-from hashers.types import CombinedImageHash
+from src.finders.types import ImagePair
+from src.hashers.types import CombinedImageHash
 
 MATCH_THRESHOLD = 5
 

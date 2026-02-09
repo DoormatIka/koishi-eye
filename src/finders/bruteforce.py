@@ -4,12 +4,12 @@ import os
 from pathlib import Path
 from concurrent.futures import ProcessPoolExecutor, Future, as_completed
 
-from gui.infra.logger import Error, HasherLogger, Info, Progress
-from hashers.types import CombinedImageHash, ImageHashResult
-from hashers.image import imagehash_to_int, ImageHasher
+from src.gui.infra.logger import Error, HasherLogger, Info, Progress
+from src.hashers.types import CombinedImageHash, ImageHashResult
+from src.hashers.image import imagehash_to_int, ImageHasher
 
-from finders.types import ImagePair
-from finders.helpers import is_similar_image, get_supported_extensions
+from src.finders.types import ImagePair
+from src.finders.helpers import is_similar_image, get_supported_extensions
 
 
 # todo: crop resistant hashing doesn't do anything at the moment.

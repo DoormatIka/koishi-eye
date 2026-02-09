@@ -3,10 +3,10 @@ import flet as ft
 
 from typing import Any
 
-from gui.components.upper_row.image_counter import ImageCounter
-from gui.components.upper_row.logs import Logs
-from gui.infra.app_bus import AppEventBus
-from gui.infra.logger import Logger
+from src.gui.components.upper_row.image_counter import ImageCounter
+from src.gui.components.upper_row.logs import Logs
+from src.gui.infra.app_bus import AppEventBus
+from src.gui.infra.logger import Logger
 
 class UpperBar(ft.Container):
     content: ft.Control | None

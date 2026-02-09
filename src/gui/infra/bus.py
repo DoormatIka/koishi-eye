@@ -3,7 +3,7 @@ from collections.abc import Awaitable, Callable
 import inspect
 from typing import Any, Generic, TypeVar, cast
 
-from gui.events import Event
+from src.gui.events import Event
 
 
 EventT = TypeVar("EventT", bound=Event)

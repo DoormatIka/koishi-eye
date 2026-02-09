@@ -4,11 +4,11 @@ import multiprocessing
 from multiprocessing.queues import Queue as QueueType
 import flet as ft
 
-from gui.infra.logger import Logger, LoggerEvent, QueueLogger, drain_log_queue
-from gui.infra.router import Router
-from gui.views.entry import entry_page
+from src.gui.infra.logger import Logger, LoggerEvent, QueueLogger, drain_log_queue
+from src.gui.infra.router import Router
+from src.gui.views.entry import entry_page
 
-from gui.infra.app_bus import AppState, AppEventBus
+from src.gui.infra.app_bus import AppState, AppEventBus
 
 async def flet_main(page: ft.Page):
     logger = Logger()

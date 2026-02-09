@@ -5,7 +5,7 @@ import imagehash
 from PIL import Image, ImageFile, UnidentifiedImageError
 from pathlib import Path
 
-from hashers.types import CombinedImageHash, ImageHashResult
+from src.hashers.types import CombinedImageHash, ImageHashResult
 
 class ImageHasher:
     size: int

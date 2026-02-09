@@ -2,8 +2,8 @@
 from typing import Any
 import flet as ft
 
-from gui.events import DeleteAllSelected
-from gui.infra.app_bus import AppEventBus
+from src.gui.events import DeleteAllSelected
+from src.gui.infra.app_bus import AppEventBus
 
 class DeleteButton(ft.Container):
     content: ft.Control | None
