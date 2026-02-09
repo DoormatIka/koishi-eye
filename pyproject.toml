@@ -14,7 +14,7 @@ dependencies = [
 
 [tool.basedpyright]
 reportImplicitRelativeImport = "error"
-reportMissingModuleSource = "error" # Or "warning"
+reportMissingModuleSource = "error"
 
 [tool.flet]
 project = "koisee"
