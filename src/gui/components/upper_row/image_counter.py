@@ -4,7 +4,7 @@ import flet as ft
 from typing import Any
 
 from gui.events import DeleteAllSelected, ImageUpdate
-from gui.infra.bus import AppState, AppEventBus
+from gui.infra.app_bus import AppState, AppEventBus
 
 class ImageCounter(ft.Container):
     content: ft.Control | None

@@ -4,7 +4,7 @@ import flet as ft
 from typing import Any
 
 from gui.components.upper_row.image_counter import ImageCounter
-from gui.infra.bus import AppEventBus
+from gui.infra.app_bus import AppEventBus
 
 class UpperBar(ft.Container):
     content: ft.Control | None

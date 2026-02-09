@@ -1,19 +1,21 @@
 
+import pprint
 import flet as ft
 
 from gui.components.card_list import FileCardList
 
 from gui.components.task_row import TaskRow
 from gui.components.upper_row.upper_row import UpperBar
-from gui.infra.bus import AppState, AppEventBus
+from gui.infra.app_bus import AppState, AppEventBus
 from gui.events import DeleteAllSelected, Directory, ImageUpdate, SelectedAction, SevereAppError
+from gui.infra.logger import Progress
 
 """
 Hello! This code uses an event bus to pass data around the UI.
 """
 
 
-def entry_page(page: ft.Page, bus: AppEventBus):
+def entry_page(page: ft.Page, state: AppState, bus: AppEventBus):
     manage_app_errors = make_manage_errors(page)
 
     bus.subscribe(Directory, manage_directory)
@@ -21,6 +23,8 @@ def entry_page(page: ft.Page, bus: AppEventBus):
     bus.subscribe(DeleteAllSelected, delete_selected_images)
     bus.subscribe(SevereAppError, manage_app_errors)
     bus.subscribe(ImageUpdate, image_update)
+
+    state.logger.subscribe(Progress, on_progress)
 
 
     col = ft.Column(
@@ -40,6 +44,9 @@ def entry_page(page: ft.Page, bus: AppEventBus):
         content=col,
         expand=True,
     )
+
+def on_progress(_: None, payload: Progress):
+    pprint.pprint(payload)
 
 def make_manage_errors(page: ft.Page):
     snack_bar = ft.SnackBar(

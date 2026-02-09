@@ -4,7 +4,7 @@ from typing import Any
 import flet as ft
 
 from gui.events import Directory, ImageUpdate
-from gui.infra.bus import AppState, AppEventBus
+from gui.infra.app_bus import AppState, AppEventBus
 from gui.components.card_row import ImageCardRow
 from wrappers import clusterer
 
@@ -54,17 +54,18 @@ class FileCardList(ft.Container):
         self.content = self._body
         self._bus = bus
 
-    async def create_matches(self, _: AppState, obj: Directory):
+    async def create_matches(self, state: AppState, obj: Directory):
         self._column.controls.clear()
         if obj.directory is None:
             raise ValueError("Directory is null!")
 
         print(f"create_matches: {obj}")
-        image_matches = await clusterer(Path(obj.directory))
+        image_matches = await state.finder.create_hashes_from_directory(Path(obj.directory))
+        similar_images = state.finder.get_similar_objects(image_matches)
         if len(image_matches) <= 0:
             self._body.content = self._empty
         else:
-            for pair in image_matches:
+            for pair in similar_images:
                 row = ImageCardRow(self._bus, pair)
                 self._column.controls.append(row)
             self._body.content = self._column

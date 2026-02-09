@@ -20,7 +20,6 @@ class MethodAction(Enum):
         return self.value
 
 
-
 async def brute_force(directory: Path):
     imghasher = ImageHasher(log=Logger(), size=16)
     bf: FinderInterface[list[CombinedImageHash], list[ImagePair]] = BruteForceFinder(hasher=imghasher)
