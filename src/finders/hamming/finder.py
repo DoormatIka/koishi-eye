@@ -118,17 +118,19 @@ class HammingClustererFinder():
 
     def get_similar_objects(self, image_hashes: Buckets) -> set[ImagePair]:
         nearest_matches: set[ImagePair] = set()
+        path_matches: set[tuple[str, ...]] = set()
 
         for container in image_hashes:
             # assuming the images are arranged to their closest container.
             for i, img1 in enumerate(container.bucket):
                 for img2 in container.bucket[i + 1:]:
                     pair = tuple(sorted([str(img1.path), str(img2.path)]))
-                    if pair in nearest_matches:
+                    if pair in path_matches:
                         continue
 
-                    if is_similar_image(img1, img2) != None:
+                    if is_similar_image(img1, img2) is not None:
                         nearest_matches.add((img1, img2))
+                        path_matches.add(pair)
 
         return nearest_matches
 
