@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Any
 import flet as ft
 
+from finders import ImagePair
 from src.gui.components.card_row import ImageCardRow
 from src.gui.events import DeleteAllSelected, Directory, ImageUpdate
 from src.gui.components.card_list import FileCardList
@@ -13,12 +14,15 @@ class PagingList(ft.Container):
     expand: bool | int | None
 
     _bus: AppEventBus
-    _total_list: list[ft.Control]
+
+    _similar_images: set[ImagePair]
+    _pages: list[list[ft.Control]]
     _list_view: ft.Container
     _left: ft.IconButton
     _right: ft.IconButton
     _page_number: ft.Text
 
+    _page_size: int
     _current_page: int
     _total_page: int
     def __init__(
@@ -40,8 +44,10 @@ class PagingList(ft.Container):
 
         self._bus = bus
         self._current_page = 1
-        self._total_page = 10
-        self._total_list = []
+        self._total_page = 0
+        self._pages = []
+        self._page_size = 20
+
         self._list_view = ft.Container(
             expand=True,
             border=ft.Border.all(width=0.1, color=ft.Colors.WHITE),
@@ -78,30 +84,31 @@ class PagingList(ft.Container):
             self.update_page()
 
     def update_page(self):
+        """
+        Calculate the pages for each change to a page.
+        """
         self._page_number.value = f"{self._current_page}/{self._total_page}"
-
-    def refresh_lists(self, _a: AppState, _b: DeleteAllSelected):
-        """
-        Recalculate the pages for each change to a page.
-        """
-        pass
-    def slice_to_chunks(self):
-        pass
+        self._list_view.content = FileCardList(self._bus, self._pages[self._current_page])
 
     async def create_matches(self, state: AppState, obj: Directory):
-        self._total_list.clear()
+        self._pages.clear()
 
         if obj.directory is None:
             raise ValueError("Directory is null!")
 
         image_hashes = await state.finder.create_hashes_from_directory(Path(obj.directory))
         similar_images = state.finder.get_similar_objects(image_hashes)
-        for pair in similar_images:
-            row = ImageCardRow(self._bus, pair)
-            self._total_list.append(row)
 
+        l: list[ft.Control] = []
+        for i, pair in enumerate(similar_images):
+            row = ImageCardRow(self._bus, pair)
+            if i % self._current_page == 0:
+                self._pages.append(l)
+                l.clear()
+            l.append(row)
+
+        self._total_page = len(self._pages)
         await self._bus.notify(ImageUpdate(total=len(similar_images)))
 
-        self._list_view.content = FileCardList(self._bus, self._total_list)
         self.update()
 

@@ -44,6 +44,8 @@ class AppEventBus:
 
     def subscribe(self, event: type[UIEventT], handler: UIObserver[UIEventT]) -> None:
         self.bus.subscribe(event, handler)
+    def unsubscribe(self, event: type[UIEventT], handler: UIObserver[UIEventT]) -> None:
+        self.bus.unsubscribe(event, handler)
 
     async def notify(self, event: UIEvent):
         await self.bus.notify(self.state, event)

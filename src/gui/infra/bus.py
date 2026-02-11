@@ -26,6 +26,10 @@ class PureEventBus(Generic[Ctx]):
             self._fns[event] = []
         self._fns[event].append(cast(RuntimeObserver[Ctx], handler))
 
+    def unsubscribe(self, event: type[EventT], handler: Observer[Ctx, EventT]):
+        if event in self._fns:
+            self._fns[event].remove(handler)
+
     async def notify(self, ctx: Ctx, event: Any): # pyright: ignore[reportAny, reportExplicitAny]
         handlers = list(self._fns.get(type(event), [])) # pyright: ignore[reportAny, reportUnknownArgumentType]
         if not handlers:

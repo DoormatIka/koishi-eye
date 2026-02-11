@@ -1,5 +1,5 @@
 
-from typing import Any
+from typing import Any, override
 import flet as ft
 
 from src.gui.events import DeleteAllSelected
@@ -60,5 +60,9 @@ class FileCardList(ft.Container):
     def on_delete(self, _a: AppState, _b: DeleteAllSelected):
         if len(self._list.controls) <= 0:
             self._body.content = self._empty
+
+    @override
+    def will_unmount(self):
+        self._bus.unsubscribe(DeleteAllSelected, self.on_delete)
     
 
