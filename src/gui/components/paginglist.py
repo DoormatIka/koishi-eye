@@ -4,7 +4,7 @@ from typing import Any
 import flet as ft
 
 from src.gui.components.card_row import ImageCardRow
-from src.gui.events import Directory, ImageUpdate
+from src.gui.events import DeleteAllSelected, Directory, ImageUpdate
 from src.gui.components.card_list import FileCardList
 from src.gui.infra.app_bus import AppEventBus, AppState
 
@@ -17,8 +17,8 @@ class PagingList(ft.Container):
     _list_view: ft.Container
     _left: ft.IconButton
     _right: ft.IconButton
-
     _page_number: ft.Text
+
     _current_page: int
     _total_page: int
     def __init__(
@@ -36,6 +36,7 @@ class PagingList(ft.Container):
             **kwargs # pyright: ignore[reportAny]
         )
         bus.subscribe(Directory, self.create_matches)
+        bus.subscribe(DeleteAllSelected, self.refresh_lists)
 
         self._bus = bus
         self._current_page = 1
@@ -79,7 +80,7 @@ class PagingList(ft.Container):
     def update_page(self):
         self._page_number.value = f"{self._current_page}/{self._total_page}"
 
-    def refresh_lists(self):
+    def refresh_lists(self, _a: AppState, _b: DeleteAllSelected):
         """
         Recalculate the pages for each change to a page.
         """
