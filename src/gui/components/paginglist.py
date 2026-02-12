@@ -89,7 +89,7 @@ class PagingList(ft.Container):
         """
         Calculate the pages for each change to a page.
         """
-        self._page_number.value = f"{self._current_page + 1}/{len(self._pages)}"
+        self.update_page_number()
         if len(self._pages) <= 0:
             self._list_view.content = FileCardList(self._bus, [])
         else:
@@ -97,6 +97,14 @@ class PagingList(ft.Container):
 
         self.update()
 
+    def update_page_number(self):
+        visual_current_page = 0
+        if len(self._pages) > 0:
+            visual_current_page = self._current_page + 1
+        else:
+            visual_current_page = 0
+
+        self._page_number.value = f"{visual_current_page}/{len(self._pages)}"
 
     async def delete_rows(self, _a: AppState, _b: DeleteAllSelected):
         for pair in self._selected_images:
@@ -128,7 +136,6 @@ class PagingList(ft.Container):
         else:
             self._selected_images.discard(image_pair)
         
-        print(f"selected_images: {len(self._selected_images)}")
         self.update()
 
     async def create_matches(self, state: AppState, obj: Directory):
