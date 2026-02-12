@@ -22,14 +22,15 @@ class ImageCardRow(ft.Container):
     bgcolor: ft.ColorValue | None
     width: float | None
 
-    _on_select: Callable[[ImagePair, bool], None]
+    _on_select: Callable[[CombinedImageHash, Literal["add", "remove"]], None]
     _pair: ImagePair
     _views: list[ImageView]
     _selected_image: int | None
     def __init__(
         self, 
         pair: ImagePair,
-        on_select: Callable[[ImagePair, bool], None],
+        on_select: Callable[[CombinedImageHash, Literal["add", "remove"]], None],
+        selected_hashes: set[CombinedImageHash],
         width: float | None = None,
         height: float | None = None,
         expand: bool | None = None,
@@ -45,6 +46,11 @@ class ImageCardRow(ft.Container):
         self._on_select = on_select
         self._pair = pair
         views = self.create_model_images(pair)
+
+        # sync from source
+        for i, img in enumerate(pair):
+            if img in selected_hashes:
+                self._selected_image = i
 
         img_row = ft.Row(
             controls=[view.container for view in views],
@@ -98,9 +104,7 @@ class ImageCardRow(ft.Container):
         return containers
 
     def make_toggle_event(self, i: int):
-        async def tog():
-            self.toggle_delete(i)
-        return tog
+        return lambda: self.toggle_delete(i)
 
     def _deselect_current(self):
         """Handles the UI and Bus notification for removing a selection."""
@@ -111,7 +115,7 @@ class ImageCardRow(ft.Container):
         view.icon.visible = False
         view.icon.update()
         
-        self._on_select(self._pair, False)
+        self._on_select(self._pair[self._selected_image], "remove")
 
     def _select_new(self, i: int):
         """Handles the UI and Bus notification for adding a selection."""
@@ -120,7 +124,7 @@ class ImageCardRow(ft.Container):
         view.icon.visible = True
         view.icon.update()
         
-        self._on_select(self._pair, True)
+        self._on_select(self._pair[self._selected_image], "add")
 
 
     def toggle_delete(self, i: int):

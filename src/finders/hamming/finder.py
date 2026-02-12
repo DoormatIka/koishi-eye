@@ -1,8 +1,10 @@
 
 import asyncio
-from collections.abc import Iterable
-from typing import TypeVar, cast
 import numpy as np
+import os
+
+from collections.abc import Generator, Iterable
+from typing import TypeVar, cast
 from numpy.typing import NDArray
 
 from pathlib import Path
@@ -81,15 +83,46 @@ class HammingClustererFinder():
 
         path_generator = (p for ext in exts for p in Path(directory).rglob(f"*{ext}"))
 
-        n_images = 0
-        loop = asyncio.get_running_loop()
 
         await self.logger.notify(Info(msg="Getting files from disk"))
 
+        n_images = 0
+        cpu_count = os.cpu_count() or 1
+        if cpu_count > 1:
+            await self._create_hashes_multithreading(path_generator, n_images)
+        else:
+            await self._create_hashes_singlethreaded(path_generator, n_images)
+
+
+        await self.logger.notify(Progress(
+            path=Path(),
+            is_complete=True,
+            current=n_images
+        ))
+        return self.buckets
+
+    async def _create_hashes_singlethreaded(self, path_generator: Generator[Path, None, None], n_images: int):
+        for path_chunk in chunked(path_generator, size=8):
+            for res, err in _process_chunk(self.hasher, path_chunk):
+                if res is None:
+                    await self.logger.notify(Error(str(err)))
+                    continue
+
+                self._add_image_to_buckets_(combined=res)
+                n_images += 1
+
+                await self.logger.notify(Progress(
+                    path=res.path,
+                    is_complete=False,
+                    current=n_images
+                ))
+
+    async def _create_hashes_multithreading(self, path_generator: Generator[Path, None, None], n_images: int):
+        loop = asyncio.get_running_loop()
         with ProcessPoolExecutor() as executor:
             futures: list[asyncio.Future[list[ImageHashResult]]] = []
             for path_chunk in chunked(path_generator, size=8):
-                future = loop.run_in_executor(executor, self._process_chunk, self.hasher, path_chunk)
+                future = loop.run_in_executor(executor, _process_chunk, self.hasher, path_chunk)
                 futures.append(future)
 
             for completed_future in asyncio.as_completed(futures):
@@ -107,14 +140,6 @@ class HammingClustererFinder():
                         is_complete=False,
                         current=n_images
                     ))
-
-
-        await self.logger.notify(Progress(
-            path=Path(),
-            is_complete=True,
-            current=n_images
-        ))
-        return self.buckets
 
     def get_similar_objects(self, image_hashes: Buckets) -> set[ImagePair]:
         nearest_matches: set[ImagePair] = set()
@@ -134,11 +159,9 @@ class HammingClustererFinder():
 
         return nearest_matches
 
-    @staticmethod
-    def _process_chunk(hasher: ImageHasher, paths: list[Path]):
-        # This runs in the worker process
-        return [hasher.create_hash_from_image(p) for p in paths]
-
+def _process_chunk(hasher: ImageHasher, paths: list[Path]):
+    # This runs in the worker process
+    return [hasher.create_hash_from_image(p) for p in paths]
 
 def nparr_bool_to_int(arr: np.ndarray):
     packed = np.packbits(arr)
