@@ -1,39 +1,36 @@
 
+import asyncio
+import multiprocessing
+from multiprocessing.queues import Queue as QueueType
 import flet as ft
 
+from src.gui.infra.logger import Logger, LoggerEvent, QueueLogger, drain_log_queue
+from src.gui.infra.router import Router
+from src.gui.views.entry import entry_page
 
-def flet_main(page: ft.Page):
-    page.title = "koishi's eye"
-    page.window.resizable = True
-    page.window.width = 700
-    page.window.height = 400
+from src.gui.infra.app_bus import AppState, AppEventBus
 
-    page.vertical_alignment = ft.MainAxisAlignment.CENTER
-    page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
-    page.scroll = None
+async def flet_main(page: ft.Page):
+    logger = Logger()
+    internal_queue: QueueType[LoggerEvent] = multiprocessing.Queue()
+    queue_logger = QueueLogger(internal_queue)
+    state = AppState(queue_logger=queue_logger, logger=logger)
+    observer = AppEventBus(state)
 
-    txt = ft.Text(value="0", text_align=ft.TextAlign.CENTER, width=100)
-
-    def minus_click(_: ft.Event[ft.IconButton]):
-        txt.value = str(int(txt.value) - 1)
-    def plus_click(_: ft.Event[ft.IconButton]):
-        txt.value = str(int(txt.value) + 1)
-
-    row = ft.Row(
-        alignment=ft.MainAxisAlignment.CENTER,
-        controls=[
-            ft.IconButton(ft.Icons.REMOVE, on_click=minus_click),
-            txt,
-            ft.IconButton(ft.Icons.ADD, on_click=plus_click)
-        ],
+    drain_task = asyncio.create_task(
+        drain_log_queue(internal_queue, logger)
     )
 
-    c = ft.Container(
-        alignment=ft.Alignment.CENTER,
-        content=row,
-        expand=True,
-    )
+    def on_disconnect(_):
+        _ = drain_task.cancel()
+        internal_queue.close()
+    page.on_disconnect = on_disconnect
 
-    page.add(c)
 
+    router = Router(page=page)
+    await page.push_route("/")
+
+    router.add_route(route="/main", container=entry_page(page, state, logger, observer))
+
+    await page.push_route("/main")
 

@@ -3,7 +3,7 @@ name = "img-tools"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = "==3.12.*"
 dependencies = [
     "argparse>=1.4.0",
     "flet[desktop]>=0.80.5",
@@ -11,3 +11,17 @@ dependencies = [
     "numpy>=2.4.1",
     "pillow>=12.1.0",
 ]
+
+[tool.basedpyright]
+reportImplicitRelativeImport = "error"
+reportMissingModuleSource = "error"
+
+[tool.flet]
+project = "koisee"
+product = "koisee"
+icon = "assets/koishilogo.png"
+
+[tool.flet.compile]
+app = true
+packages = true
+cleanup = true

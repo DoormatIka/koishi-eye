@@ -2,7 +2,7 @@
 
 from pathlib import Path
 from typing import Protocol, TypeVar, Generic
-from hashers.types import CombinedImageHash
+from src.hashers.types import CombinedImageHash
 
 type ImagePair = tuple[CombinedImageHash, CombinedImageHash]
 
