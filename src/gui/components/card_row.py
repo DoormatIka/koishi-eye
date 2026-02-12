@@ -1,13 +1,11 @@
 
-import asyncio
 from collections.abc import Collection
 from dataclasses import dataclass
-from typing import Any, Literal, cast
+from typing import Any, Callable, Literal, cast
 import uuid
 import flet as ft
 
-from src.gui.events import SelectedAction, SelectedPayload
-from src.gui.infra.app_bus import AppEventBus
+from src.finders import ImagePair
 from src.hashers.types import CombinedImageHash
 from src.gui.models.image import ModelImage
 
@@ -24,13 +22,14 @@ class ImageCardRow(ft.Container):
     bgcolor: ft.ColorValue | None
     width: float | None
 
-    _bus: AppEventBus
+    _on_select: Callable[[ImagePair, bool], None]
+    _pair: ImagePair
     _views: list[ImageView]
     _selected_image: int | None
     def __init__(
         self, 
-        bus: AppEventBus,
-        images: Collection[CombinedImageHash],
+        pair: ImagePair,
+        on_select: Callable[[ImagePair, bool], None],
         width: float | None = None,
         height: float | None = None,
         expand: bool | None = None,
@@ -42,9 +41,10 @@ class ImageCardRow(ft.Container):
             expand=expand,
             **kwargs # pyright: ignore[reportAny]
         )
-        self._bus = bus
         self.id = str(uuid.uuid4())
-        views = self.create_model_images(images)
+        self._on_select = on_select
+        self._pair = pair
+        views = self.create_model_images(pair)
 
         img_row = ft.Row(
             controls=[view.container for view in views],
@@ -111,7 +111,7 @@ class ImageCardRow(ft.Container):
         view.icon.visible = False
         view.icon.update()
         
-        self._notify_bus(view, action="delete")
+        self._on_select(self._pair, False)
 
     def _select_new(self, i: int):
         """Handles the UI and Bus notification for adding a selection."""
@@ -120,23 +120,8 @@ class ImageCardRow(ft.Container):
         view.icon.visible = True
         view.icon.update()
         
-        self._notify_bus(view, action="add")
+        self._on_select(self._pair, True)
 
-    def _notify_bus(self, view: ImageView, action: Literal["add", "delete"]):
-        """Helper to package the SelectedImageResult and send it to the bus."""
-        data = cast(ModelImage, view.container.data)
-        payload = SelectedPayload(
-            id=self.id,
-            row=self,
-            model=data,
-        )
-
-        _ = asyncio.create_task(
-            self._bus.notify(SelectedAction(
-                action=action,
-                payload=payload
-            ))
-        )
 
     def toggle_delete(self, i: int):
         """Entry point for the click event."""

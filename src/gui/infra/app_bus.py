@@ -1,5 +1,4 @@
 
-from src.gui.events import SelectedPayload
 
 from collections.abc import Awaitable, Callable
 from typing import TypeVar
@@ -15,13 +14,11 @@ from src.hashers import ImageHasher
 class AppState:
     directory: str | None
     total_images: int
-    selected_images: dict[str, SelectedPayload]
     logger: Logger
     finder: FinderInterface[Buckets, set[ImagePair]]
 
     def __init__(self, queue_logger: QueueLogger, logger: Logger):
         self.total_images = 0
-        self.selected_images = dict()
         self.logger = logger
         self.directory = None
         hasher = ImageHasher()

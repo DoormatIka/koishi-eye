@@ -1,6 +1,5 @@
 
 from pathlib import Path
-import pprint
 from typing import Any, cast
 import flet as ft
 
@@ -17,6 +16,7 @@ class PagingList(ft.Container):
     _bus: AppEventBus
 
     _similar_images: set[ImagePair]
+    _selected_images: set[ImagePair]
     _pages: list[list[ft.Control]]
     _list_view: ft.Container
     _left: ft.IconButton
@@ -28,6 +28,7 @@ class PagingList(ft.Container):
     def __init__(
         self, 
         bus: AppEventBus,
+        page_size: int = 10,
         width: float | None = None,
         height: float | None = None,
         expand: bool | int | None = None,
@@ -40,13 +41,14 @@ class PagingList(ft.Container):
             **kwargs # pyright: ignore[reportAny]
         )
         bus.subscribe(Directory, self.create_matches)
-        # bus.subscribe(DeleteAllSelected, self.refresh_lists)
+        bus.subscribe(DeleteAllSelected, self.delete_rows)
 
         self._bus = bus
         self._current_page = 0
         self._pages = []
-        self._page_size = 2
+        self._page_size = page_size
         self._similar_images = set()
+        self._selected_images = set()
 
         self._list_view = ft.Container(
             expand=True,
@@ -88,9 +90,26 @@ class PagingList(ft.Container):
         Calculate the pages for each change to a page.
         """
         self._page_number.value = f"{self._current_page + 1}/{len(self._pages)}"
-        self._list_view.content = FileCardList(self._bus, self._pages[self._current_page])
+        if len(self._pages) <= 0:
+            self._list_view.content = FileCardList(self._bus, [])
+        else:
+            self._list_view.content = FileCardList(self._bus, self._pages[self._current_page])
 
         self.update()
+
+
+    async def delete_rows(self, _a: AppState, _b: DeleteAllSelected):
+        for pair in self._selected_images:
+            self._similar_images.discard(pair)
+
+        await self.paginate_images()
+
+        if self._current_page >= len(self._pages) and self._current_page > 0:
+            self._current_page -= 1
+
+        self._selected_images.clear()
+
+        self.update_page()
 
     async def paginate_images(self):
         self._pages.clear()
@@ -98,10 +117,19 @@ class PagingList(ft.Container):
         ordered_items = sorted(self._similar_images, key=lambda x: x[0].path)
         for i in range(0, len(ordered_items), self._page_size):
             chunk = ordered_items[i : i + self._page_size]
-            page_controls = [ImageCardRow(self._bus, pair) for pair in chunk]
+            page_controls = [ImageCardRow(pair, on_select=self.handle_selection) for pair in chunk]
             self._pages.append(cast(list[ft.Control], page_controls))
 
         await self._bus.notify(ImageUpdate(total=len(self._similar_images)))
+
+    def handle_selection(self, image_pair: ImagePair, is_selected: bool):
+        if is_selected:
+            self._selected_images.add(image_pair)
+        else:
+            self._selected_images.discard(image_pair)
+        
+        print(f"selected_images: {len(self._selected_images)}")
+        self.update()
 
     async def create_matches(self, state: AppState, obj: Directory):
         self._similar_images.clear()
