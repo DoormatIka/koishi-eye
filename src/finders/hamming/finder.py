@@ -84,12 +84,15 @@ class HammingClustererFinder():
 
         path_generator = (p for ext in exts for p in Path(directory).rglob(f"*{ext}"))
 
+        """
         cpu_count = os.cpu_count() or 1
         if cpu_count > 1:
             await self._create_hashes_multithreading(path_generator)
         else:
             await self._create_hashes_singlethreaded(path_generator)
+        """
 
+        await self._create_hashes_singlethreaded(path_generator)
 
         return self.buckets
 
@@ -110,6 +113,8 @@ class HammingClustererFinder():
                         is_complete=False,
                         current=n_images
                     ))
+
+                await asyncio.sleep(0) # event loop breathing room
 
         await self.logger.notify(Progress(
             path=Path(),
