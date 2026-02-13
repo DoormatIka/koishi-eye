@@ -78,30 +78,23 @@ class HammingClustererFinder():
 
     async def create_hashes_from_directory(self, directory: Path) -> Buckets:
         self.clear_buckets()
+        await self.logger.notify(Info(msg="Getting files from disk"))
 
         exts = get_supported_extensions()
 
         path_generator = (p for ext in exts for p in Path(directory).rglob(f"*{ext}"))
 
-
-        await self.logger.notify(Info(msg="Getting files from disk"))
-
-        n_images = 0
         cpu_count = os.cpu_count() or 1
         if cpu_count > 1:
-            await self._create_hashes_multithreading(path_generator, n_images)
+            await self._create_hashes_multithreading(path_generator)
         else:
-            await self._create_hashes_singlethreaded(path_generator, n_images)
+            await self._create_hashes_singlethreaded(path_generator)
 
 
-        await self.logger.notify(Progress(
-            path=Path(),
-            is_complete=True,
-            current=n_images
-        ))
         return self.buckets
 
-    async def _create_hashes_singlethreaded(self, path_generator: Generator[Path, None, None], n_images: int):
+    async def _create_hashes_singlethreaded(self, path_generator: Generator[Path, None, None]):
+        n_images = 0
         for path_chunk in chunked(path_generator, size=8):
             for res, err in _process_chunk(self.hasher, path_chunk):
                 if res is None:
@@ -111,13 +104,21 @@ class HammingClustererFinder():
                 self._add_image_to_buckets_(combined=res)
                 n_images += 1
 
-                await self.logger.notify(Progress(
-                    path=res.path,
-                    is_complete=False,
-                    current=n_images
-                ))
+                if n_images % 10 == 0:
+                    await self.logger.notify(Progress(
+                        path=res.path,
+                        is_complete=False,
+                        current=n_images
+                    ))
 
-    async def _create_hashes_multithreading(self, path_generator: Generator[Path, None, None], n_images: int):
+        await self.logger.notify(Progress(
+            path=Path(),
+            is_complete=True,
+            current=n_images
+        ))
+
+    async def _create_hashes_multithreading(self, path_generator: Generator[Path, None, None]):
+        n_images = 0
         loop = asyncio.get_running_loop()
         with ProcessPoolExecutor() as executor:
             futures: list[asyncio.Future[list[ImageHashResult]]] = []
@@ -135,15 +136,28 @@ class HammingClustererFinder():
                     self._add_image_to_buckets_(combined=res)
                     n_images += 1
 
-                    await self.logger.notify(Progress(
-                        path=res.path,
-                        is_complete=False,
-                        current=n_images
-                    ))
+                    if n_images % 10 == 0:
+                        _ = asyncio.create_task(
+                            self.logger.notify(Progress(
+                                path=res.path,
+                                is_complete=False,
+                                current=n_images
+                            ))
+                        )
+
+
+        _ = asyncio.create_task(
+            self.logger.notify(Progress(
+                path=Path(),
+                is_complete=True,
+                current=n_images
+            ))
+        )
 
     def get_similar_objects(self, image_hashes: Buckets) -> set[ImagePair]:
         nearest_matches: set[ImagePair] = set()
         path_matches: set[tuple[str, ...]] = set()
+
 
         for container in image_hashes:
             # assuming the images are arranged to their closest container.

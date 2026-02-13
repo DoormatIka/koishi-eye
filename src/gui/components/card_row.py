@@ -55,7 +55,6 @@ class ImageCardRow(ft.Container):
         img_row = ft.Row(
             controls=[view.container for view in views],
             alignment=ft.MainAxisAlignment.CENTER,
-            scroll=ft.ScrollMode.ADAPTIVE,
             height=180
         )
 
@@ -75,7 +74,7 @@ class ImageCardRow(ft.Container):
             imgui = ft.Image(
                 src=str(img.path),
                 height=200,
-                width=150,
+                expand=1,
                 fit=ft.BoxFit.COVER,
             )
             icon = ft.Icon(
@@ -97,6 +96,8 @@ class ImageCardRow(ft.Container):
             container = ft.Container(
                 content=stack,
                 on_click=self.make_toggle_event(i),
+                expand=1,
+                alignment=ft.Alignment.CENTER,
                 data=ModelImage(hash=img)
             )
             containers.append(ImageView(container, icon))
